@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Sistema de Gestão de Academia</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    background: #f4f6f8;
+}
+
+/* MENU */
+nav {
+    background: #111;
+    padding: 15px;
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+}
+
+nav ul li {
+    color: white;
+    cursor: pointer;
+}
+
+nav ul li:hover {
+    text-decoration: underline;
+}
+
+/* CARROSSEL */
+.carousel {
+    height: 220px;
+    background: linear-gradient(90deg,#000,#444);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+}
+
+/* CONTEÚDO */
+.container {
+    padding: 20px;
+}
+
+.section {
+    display: none;
+}
+
+.section.active {
+    display: block;
+}
+
+/* FORMULÁRIOS */
+input, select, button {
+    padding: 8px;
+    margin: 5px 0;
+    width: 100%;
+}
+
+button {
+    background: #111;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #333;
+}
+
+/* LISTAS */
+ul {
+    margin-top: 10px;
+}
+
+li {
+    padding: 5px;
+    background: white;
+    margin-bottom: 5px;
+}
+
+/* FOOTER */
+footer {
+    background: #111;
+    color: white;
+    text-align: center;
+    padding: 15px;
+    margin-top: 30px;
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+<ul>
+    <li onclick="show('dashboard')">Dashboard</li>
+    <li onclick="show('alunos')">Alunos</li>
+    <li onclick="show('planos')">Planos</li>
+    <li onclick="show('treinos')">Treinos</li>
+    <li onclick="show('financeiro')">Financeiro</li>
+    <li onclick="show('frequencia')">Frequência</li>
+    <li onclick="show('relatorios')">Relatórios</li>
+    <li onclick="show('config')">Configurações</li>
+</ul>
+</nav>
+
+<div class="carousel">
+    Sistema de Gestão de Academia 💪
+</div>
+
+<div class="container">
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="section active">
+<h2>Dashboard</h2>
+<p>Visão geral da academia</p>
+</div>
+
+<!-- ALUNOS -->
+<div id="alunos" class="section">
+<h2>Cadastro de Alunos</h2>
+<input id="nomeAluno" placeholder="Nome do aluno">
+<button onclick="addAluno()">Cadastrar</button>
+<ul id="listaAlunos"></ul>
+</div>
+
+<!-- PLANOS -->
+<div id="planos" class="section">
+<h2>Planos</h2>
+<input id="nomePlano" placeholder="Nome do plano">
+<input id="valorPlano" placeholder="Valor">
+<button onclick="addPlano()">Adicionar Plano</button>
+<ul id="listaPlanos"></ul>
+</div>
+
+<!-- TREINOS -->
+<div id="treinos" class="section">
+<h2>Treinos</h2>
+<input id="treino" placeholder="Descrição do treino">
+<button onclick="addTreino()">Adicionar</button>
+<ul id="listaTreinos"></ul>
+</div>
+
+<!-- FINANCEIRO -->
+<div id="financeiro" class="section">
+<h2>Financeiro</h2>
+<input id="receita" placeholder="Valor recebido">
+<button onclick="addReceita()">Registrar</button>
+<ul id="listaFinanceiro"></ul>
+</div>
+
+<!-- FREQUÊNCIA -->
+<div id="frequencia" class="section">
+<h2>Controle de Frequência</h2>
+<button onclick="registrarPresenca()">Registrar Presença</button>
+<p id="totalPresencas"></p>
+</div>
+
+<!-- RELATÓRIOS -->
+<div id="relatorios" class="section">
+<h2>Relatórios</h2>
+<p>Total de alunos, planos e receitas</p>
+<p id="relatorio"></p>
+</div>
+
+<!-- CONFIG -->
+<div id="config" class="section">
+<h2>Configurações</h2>
+<p>Sistema pronto para expansão</p>
+</div>
+
+</div>
+
+<footer>
+<p>© 2026 - Sistema de Gestão de Academia</p>
+</footer>
+
+<script>
+function show(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+/* ALUNOS */
+let alunos = JSON.parse(localStorage.getItem('alunos')) || [];
+function addAluno() {
+    let nome = nomeAluno.value;
+    if(nome){
+        alunos.push(nome);
+        localStorage.setItem('alunos', JSON.stringify(alunos));
+        renderAlunos();
+    }
+}
+function renderAlunos() {
+    listaAlunos.innerHTML = alunos.map(a => `<li>${a}</li>`).join('');
+}
+renderAlunos();
+
+/* PLANOS */
+let planos = JSON.parse(localStorage.getItem('planos')) || [];
+function addPlano() {
+    planos.push(nomePlano.value + " - R$" + valorPlano.value);
+    localStorage.setItem('planos', JSON.stringify(planos));
+    renderPlanos();
+}
+function renderPlanos(){
+    listaPlanos.innerHTML = planos.map(p => `<li>${p}</li>`).join('');
+}
+renderPlanos();
+
+/* TREINOS */
+let treinos = [];
+function addTreino(){
+    treinos.push(treino.value);
+    listaTreinos.innerHTML = treinos.map(t => `<li>${t}</li>`).join('');
+}
+
+/* FINANCEIRO */
+let receitas = [];
+function addReceita(){
+    receitas.push(Number(receita.value));
+    listaFinanceiro.innerHTML = receitas.map(r => `<li>R$ ${r}</li>`).join('');
+    atualizarRelatorio();
+}
+
+/* FREQUÊNCIA */
+let presencas = 0;
+function registrarPresenca(){
+    presencas++;
+    totalPresencas.innerText = "Presenças registradas: " + presencas;
+}
+
+/* RELATÓRIO */
+function atualizarRelatorio(){
+    relatorio.innerText = `
+    Alunos: ${alunos.length}
+    Planos: ${planos.length}
+    Receita Total: R$ ${receitas.reduce((a,b)=>a+b,0)}
+    `;
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1982 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FitFlow Pro | Academia Inteligente</title>
+
+  <!-- =====================================================================
+       FONTES & ÍCONES
+       Usamos Sora (display) + DM Sans (corpo) para identidade visual forte.
+       Font Awesome 6 para ícones vetoriais.
+  ====================================================================== -->
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Chart.js para os gráficos do dashboard -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+  <style>
+    /* ===================================================================
+       VARIÁVEIS GLOBAIS DE DESIGN
+       Centralizam cores, tipografia e espaçamento.
+       Para alterar o tema, basta mudar aqui.
+    =================================================================== */
+    :root {
+      --verde-escuro:  #0b2b26;
+      --verde-medio:   #1f5e54;
+      --verde-claro:   #2c7a6e;
+      --verde-suave:   #d1ece8;
+      --accent:        #4fd1c5;
+      --bg:            #f0f5f4;
+      --surface:       #ffffff;
+      --border:        #e2ede9;
+      --text-primary:  #0b2b26;
+      --text-muted:    #6b8f88;
+      --danger:        #e53e3e;
+      --danger-bg:     #fff5f5;
+      --warning:       #d69e2e;
+      --radius-lg:     24px;
+      --radius-md:     16px;
+      --radius-sm:     10px;
+      --shadow:        0 4px 24px rgba(11,43,38,.08);
+      --shadow-lg:     0 8px 40px rgba(11,43,38,.14);
+    }
+
+    /* ===================================================================
+       RESET & BASE
+    =================================================================== */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+
+    h1, h2, h3, h4 { font-family: 'Sora', sans-serif; }
+
+    /* ===================================================================
+       TELA DE LOGIN
+       Overlay fullscreen com formulário centralizado.
+    =================================================================== */
+    .login-overlay {
+      position: fixed; inset: 0;
+      background: linear-gradient(135deg, #0b2b26 0%, #1a4a42 50%, #0a1f1c 100%);
+      z-index: 2000;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Padrão decorativo de fundo no login */
+    .login-overlay::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: radial-gradient(circle at 20% 50%, rgba(79,209,197,.08) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(44,122,110,.12) 0%, transparent 40%);
+      pointer-events: none;
+    }
+
+    .login-card {
+      position: relative;
+      background: var(--surface);
+      border-radius: 32px;
+      padding: 44px 40px;
+      width: 90%; max-width: 440px;
+      box-shadow: 0 32px 64px rgba(0,0,0,.3);
+      animation: slideUp .5s ease;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .login-logo {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 6px;
+    }
+    .login-logo .logo-icon {
+      width: 46px; height: 46px;
+      background: linear-gradient(135deg, var(--verde-medio), var(--verde-claro));
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 1.3rem;
+    }
+    .login-logo h2 { font-size: 1.8rem; color: var(--verde-escuro); }
+    .login-sub { color: var(--text-muted); font-size: .9rem; margin-bottom: 28px; }
+
+    .login-label {
+      display: block; font-size: .8rem; font-weight: 600;
+      color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em;
+      margin-bottom: 6px;
+    }
+    .login-input {
+      width: 100%; padding: 13px 16px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-md);
+      font-family: 'DM Sans', sans-serif; font-size: .95rem;
+      color: var(--text-primary);
+      transition: border-color .2s;
+      margin-bottom: 16px;
+    }
+    .login-input:focus { outline: none; border-color: var(--verde-claro); }
+
+    .login-btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--verde-medio), var(--verde-claro));
+      color: white; border: none;
+      padding: 14px; border-radius: 40px;
+      font-family: 'Sora', sans-serif; font-size: 1rem; font-weight: 600;
+      cursor: pointer;
+      transition: transform .15s, box-shadow .15s;
+    }
+    .login-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(31,94,84,.35); }
+
+    .login-hint {
+      margin-top: 18px; text-align: center;
+      font-size: .8rem; color: var(--text-muted);
+      background: var(--bg); border-radius: var(--radius-sm); padding: 10px;
+    }
+
+    /* ===================================================================
+       LAYOUT PRINCIPAL (sidebar + conteúdo)
+    =================================================================== */
+    .app-container { display: none; }
+
+    .main-layout { display: flex; min-height: 100vh; }
+
+    /* -------------------------------------------------------------------
+       SIDEBAR – barra lateral de navegação
+    ------------------------------------------------------------------- */
+    .sidebar {
+      width: 270px;
+      background: linear-gradient(180deg, var(--verde-escuro) 0%, #0a1f1c 100%);
+      color: #e0f2ee;
+      position: fixed; top: 0; left: 0;
+      height: 100vh; overflow-y: auto;
+      display: flex; flex-direction: column;
+      z-index: 100;
+    }
+
+    .sidebar-brand {
+      padding: 28px 24px 20px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .sidebar-brand .brand-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--verde-claro), var(--accent));
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; color: white;
+    }
+    .sidebar-brand h2 { font-size: 1.2rem; font-weight: 700; color: white; }
+
+    /* Card do usuário logado */
+    .user-card {
+      margin: 16px; padding: 14px 16px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: var(--radius-md);
+    }
+    .user-card .user-name { font-weight: 600; font-size: .95rem; color: white; }
+    .user-card .user-role {
+      font-size: .75rem; color: var(--accent);
+      text-transform: uppercase; letter-spacing: .06em; margin-top: 2px;
+    }
+
+    /* Badge de permissão do usuário */
+    .permission-badge {
+      display: inline-block; margin-top: 6px;
+      padding: 3px 10px; border-radius: 20px; font-size: .7rem; font-weight: 600;
+    }
+    .perm-admin   { background: rgba(79,209,197,.2); color: var(--accent); }
+    .perm-gerente { background: rgba(214,158,46,.2); color: #f6e05e; }
+    .perm-instrutor { background: rgba(160,174,192,.2); color: #a0aec0; }
+
+    /* Botões de navegação */
+    .nav-section { padding: 12px 16px 8px; }
+    .nav-label {
+      font-size: .68rem; text-transform: uppercase; letter-spacing: .1em;
+      color: rgba(255,255,255,.3); padding: 0 8px; margin-bottom: 6px;
+    }
+
+    .nav-btn {
+      width: 100%; background: transparent; border: none;
+      padding: 11px 16px; text-align: left;
+      font-family: 'DM Sans', sans-serif; font-size: .9rem; font-weight: 500;
+      color: rgba(255,255,255,.6);
+      border-radius: var(--radius-sm); cursor: pointer;
+      display: flex; align-items: center; gap: 12px;
+      transition: background .15s, color .15s;
+      position: relative;
+    }
+    .nav-btn:hover   { background: rgba(255,255,255,.07); color: white; }
+    .nav-btn.active  { background: rgba(79,209,197,.15); color: var(--accent); }
+    .nav-btn.active::before {
+      content: '';
+      position: absolute; left: 0; top: 20%; bottom: 20%;
+      width: 3px; background: var(--accent); border-radius: 0 3px 3px 0;
+    }
+
+    /* Itens bloqueados por permissão */
+    .nav-btn.locked { opacity: .35; cursor: not-allowed; pointer-events: none; }
+    .nav-btn .lock-icon { margin-left: auto; font-size: .7rem; opacity: .6; }
+
+    .sidebar-spacer { flex: 1; }
+
+    .sidebar-footer { padding: 16px; }
+    .logout-btn {
+      width: 100%; background: rgba(229,62,62,.15); color: #fc8181;
+      border: 1px solid rgba(229,62,62,.2);
+    }
+    .logout-btn:hover { background: rgba(229,62,62,.25); }
+
+    /* -------------------------------------------------------------------
+       ÁREA DE CONTEÚDO
+    ------------------------------------------------------------------- */
+    .content-area {
+      flex: 1; margin-left: 270px;
+      padding: 32px 36px;
+      min-height: 100vh;
+    }
+
+    /* Cabeçalho de cada página */
+    .page-header {
+      margin-bottom: 28px;
+      display: flex; align-items: flex-start; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px;
+    }
+    .page-header h1 { font-size: 1.8rem; font-weight: 800; color: var(--verde-escuro); }
+    .page-header .sub { color: var(--text-muted); font-size: .9rem; margin-top: 2px; }
+
+    /* Seções de página (cada "aba") */
+    .page-section { display: none; animation: fadeIn .25s ease; }
+    .page-section.active-page { display: block; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ===================================================================
+       CARDS GENÉRICOS
+    =================================================================== */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    .card-body { padding: 24px; }
+
+    /* ===================================================================
+       DASHBOARD – STAT CARDS
+    =================================================================== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 18px; margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      padding: 22px 24px;
+      display: flex; align-items: center; gap: 18px;
+      box-shadow: var(--shadow);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+
+    .stat-icon {
+      width: 52px; height: 52px; border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; flex-shrink: 0;
+    }
+    .stat-icon.green  { background: var(--verde-suave); color: var(--verde-medio); }
+    .stat-icon.teal   { background: rgba(79,209,197,.15); color: var(--accent); }
+    .stat-icon.amber  { background: #fefcbf; color: var(--warning); }
+    .stat-icon.slate  { background: #edf2f7; color: #718096; }
+
+    .stat-info .stat-label { font-size: .8rem; color: var(--text-muted); font-weight: 500; }
+    .stat-info .stat-value { font-family: 'Sora', sans-serif; font-size: 1.9rem; font-weight: 800; color: var(--verde-escuro); line-height: 1.1; }
+
+    /* ===================================================================
+       GRÁFICOS DO DASHBOARD
+       Chart.js é inicializado via JS. Os canvas ficam dentro de cards.
+    =================================================================== */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px; margin-bottom: 28px;
+    }
+
+    .chart-card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      padding: 22px 24px;
+      box-shadow: var(--shadow);
+    }
+    .chart-title {
+      font-family: 'Sora', sans-serif; font-size: 1rem; font-weight: 700;
+      color: var(--verde-escuro); margin-bottom: 16px;
+    }
+    .chart-canvas-wrap { position: relative; height: 220px; }
+
+    /* ===================================================================
+       CARD DE IA
+    =================================================================== */
+    .ia-card {
+      background: linear-gradient(135deg, var(--verde-escuro), var(--verde-claro));
+      border-radius: var(--radius-lg);
+      padding: 24px; color: white;
+      margin-bottom: 28px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 16px;
+    }
+    .ia-card .ia-msg { font-size: 1rem; flex: 1; opacity: .92; }
+    .ia-card .ia-title { font-family: 'Sora', sans-serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; }
+
+    .btn-ia {
+      background: rgba(255,255,255,.15); color: white;
+      border: 1px solid rgba(255,255,255,.3);
+      padding: 10px 20px; border-radius: 40px;
+      font-family: 'Sora', sans-serif; font-size: .85rem; font-weight: 600;
+      cursor: pointer; transition: background .2s;
+      white-space: nowrap;
+    }
+    .btn-ia:hover { background: rgba(255,255,255,.25); }
+
+    /* ===================================================================
+       FORMULÁRIOS
+    =================================================================== */
+    .form-card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      padding: 22px 24px;
+      margin-bottom: 22px;
+      box-shadow: var(--shadow);
+    }
+    .form-card h3 { font-size: 1rem; font-weight: 700; color: var(--verde-escuro); margin-bottom: 16px; }
+
+    .form-row { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; }
+    .input-group { flex: 1; min-width: 160px; display: flex; flex-direction: column; gap: 5px; }
+    .input-group label { font-size: .78rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; }
+
+    .form-control {
+      width: 100%; padding: 11px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif; font-size: .9rem;
+      color: var(--text-primary); background: var(--bg);
+      transition: border-color .15s;
+    }
+    .form-control:focus { outline: none; border-color: var(--verde-claro); background: white; }
+
+    /* ===================================================================
+       BOTÕES
+    =================================================================== */
+    .btn {
+      padding: 11px 22px; border: none; border-radius: 40px;
+      font-family: 'Sora', sans-serif; font-size: .85rem; font-weight: 600;
+      cursor: pointer; transition: transform .15s, box-shadow .15s, opacity .15s;
+      display: inline-flex; align-items: center; gap: 7px;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--verde-medio), var(--verde-claro));
+      color: white; box-shadow: 0 4px 12px rgba(31,94,84,.3);
+    }
+    .btn-primary:hover { box-shadow: 0 6px 18px rgba(31,94,84,.4); }
+
+    .btn-danger { background: var(--danger-bg); color: var(--danger); border: 1px solid #fed7d7; }
+    .btn-outline { background: transparent; color: var(--verde-medio); border: 1.5px solid var(--verde-medio); }
+
+    .btn-sm { padding: 6px 14px; font-size: .78rem; border-radius: 20px; }
+    .btn-export { background: #e6fffa; color: #234e52; border: 1px solid #b2f5ea; }
+    .btn-export:hover { background: #b2f5ea; }
+
+    /* ===================================================================
+       TABELAS
+    =================================================================== */
+    .table-wrap {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .table-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 22px; border-bottom: 1px solid var(--border);
+    }
+    .table-header h3 { font-size: .95rem; font-weight: 700; color: var(--verde-escuro); }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      padding: 12px 18px; text-align: left;
+      background: var(--bg);
+      font-size: .78rem; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: .06em;
+      border-bottom: 1px solid var(--border);
+    }
+    tbody td {
+      padding: 13px 18px; font-size: .88rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: #f8fffe; }
+
+    /* ===================================================================
+       BADGES / PILLS
+    =================================================================== */
+    .badge {
+      display: inline-block; padding: 3px 12px;
+      border-radius: 20px; font-size: .72rem; font-weight: 700;
+    }
+    .badge-success  { background: #c6f6d5; color: #22543d; }
+    .badge-warning  { background: #fefcbf; color: #744210; }
+    .badge-danger   { background: #fed7d7; color: #742a2a; }
+    .badge-info     { background: #bee3f8; color: #2a4365; }
+
+    /* ===================================================================
+       PLANOS SEMANAIS – accordions
+    =================================================================== */
+    .plano-card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      margin-bottom: 16px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .plano-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 22px; cursor: pointer;
+      background: linear-gradient(135deg, var(--verde-escuro), var(--verde-medio));
+      color: white;
+    }
+    .plano-header h3 { font-size: 1rem; font-weight: 700; }
+    .plano-header .plano-meta { font-size: .78rem; opacity: .75; margin-top: 2px; }
+    .plano-chevron { transition: transform .25s; }
+    .plano-content { padding: 20px 22px; display: none; }
+    .plano-content.open { display: block; }
+
+    .semana-block { margin-bottom: 18px; }
+    .semana-title {
+      font-family: 'Sora', sans-serif; font-size: .85rem; font-weight: 700;
+      color: var(--verde-medio); text-transform: uppercase; letter-spacing: .08em;
+      margin-bottom: 10px; padding-bottom: 6px;
+      border-bottom: 2px solid var(--verde-suave);
+    }
+
+    .dia-card {
+      background: var(--bg);
+      border-radius: var(--radius-sm);
+      border-left: 4px solid var(--verde-claro);
+      padding: 12px 16px;
+      margin-bottom: 10px;
+    }
+    .dia-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .dia-header strong { font-size: .88rem; color: var(--verde-escuro); }
+
+    .exercicio-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 5px 8px; border-radius: 6px;
+      font-size: .84rem; color: #4a5568;
+    }
+    .exercicio-row:hover { background: rgba(0,0,0,.04); }
+
+    /* ===================================================================
+       BANNER DE ACESSO NEGADO
+    =================================================================== */
+    .access-denied {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 60px 24px; text-align: center;
+    }
+    .access-denied .denied-icon {
+      width: 72px; height: 72px; background: var(--danger-bg);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; color: var(--danger); margin-bottom: 18px;
+    }
+    .access-denied h3 { font-size: 1.3rem; color: var(--verde-escuro); margin-bottom: 8px; }
+    .access-denied p  { color: var(--text-muted); font-size: .9rem; }
+
+    /* ===================================================================
+       TOAST / NOTIFICAÇÃO
+    =================================================================== */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: var(--verde-escuro); color: white;
+      padding: 12px 22px; border-radius: 40px;
+      font-size: .88rem; font-weight: 500;
+      box-shadow: 0 8px 24px rgba(0,0,0,.25);
+      z-index: 9999;
+      animation: toastIn .3s ease;
+    }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ===================================================================
+       RODAPÉ
+    =================================================================== */
+    .footer {
+      text-align: center; padding: 16px 20px;
+      color: var(--text-muted); font-size: .78rem;
+      border-top: 1px solid var(--border);
+      margin-left: 270px;
+    }
+
+    /* ===================================================================
+       MODAL SIMPLES (para relatórios)
+    =================================================================== */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.45);
+      z-index: 3000;
+      display: none; align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: white; border-radius: var(--radius-lg);
+      padding: 32px; width: 90%; max-width: 540px;
+      box-shadow: var(--shadow-lg);
+      animation: slideUp .3s ease;
+    }
+    .modal-box h3 { font-size: 1.2rem; margin-bottom: 16px; color: var(--verde-escuro); }
+    .modal-actions { display: flex; gap: 12px; margin-top: 22px; justify-content: flex-end; }
+
+    /* ===================================================================
+       RESPONSIVO – tablets / celulares
+    =================================================================== */
+    @media (max-width: 900px) {
+      .charts-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar { width: 100%; position: relative; height: auto; }
+      .content-area { margin-left: 0; padding: 20px 16px; }
+      .footer { margin-left: 0; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .main-layout { flex-direction: column; }
+    }
+
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      .form-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- =======================================================================
+     TELA DE LOGIN
+     Apenas exibe a sobreposição; o JS valida credenciais e aplica permissões.
+======================================================================= -->
+<div id="loginOverlay" class="login-overlay">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon"><i class="fas fa-dumbbell"></i></div>
+      <h2>FitFlow Pro</h2>
+    </div>
+    <p class="login-sub">Sistema de Gestão Acadêmica de Academia</p>
+
+    <label class="login-label" for="loginUser">Usuário</label>
+    <input type="text" id="loginUser" class="login-input" placeholder="admin / gerente / instrutor">
+
+    <label class="login-label" for="loginPass">Senha</label>
+    <input type="password" id="loginPass" class="login-input" placeholder="••••••">
+
+    <label class="login-label" for="loginLevel">Perfil de Acesso</label>
+    <select id="loginLevel" class="login-input">
+      <option value="admin">Administrador – acesso total</option>
+      <option value="gerente">Gerente – sem exclusão</option>
+      <option value="instrutor">Instrutor – somente planos e cronograma</option>
+    </select>
+
+    <button class="login-btn" onclick="fazerLogin()">
+      <i class="fas fa-sign-in-alt"></i> Entrar no Sistema
+    </button>
+
+    <div class="login-hint">
+      <strong>Demo:</strong> admin/123 &nbsp;|&nbsp; gerente/123 &nbsp;|&nbsp; instrutor/123
+    </div>
+  </div>
+</div>
+
+<!-- =======================================================================
+     APLICAÇÃO PRINCIPAL (oculta até o login ser confirmado)
+======================================================================= -->
+<div id="appContainer" class="app-container">
+  <div class="main-layout">
+
+    <!-- -------------------------------------------------------------------
+         SIDEBAR
+    ------------------------------------------------------------------- -->
+    <aside class="sidebar">
+      <!-- Marca -->
+      <div class="sidebar-brand">
+        <div class="brand-icon"><i class="fas fa-dumbbell"></i></div>
+        <h2>FitFlow Pro</h2>
+      </div>
+
+      <!-- Informações do usuário logado -->
+      <div class="user-card">
+        <i class="fas fa-user-circle" style="margin-right:6px; color:var(--accent)"></i>
+        <span class="user-name" id="userNameDisplay">-</span>
+        <div class="user-role" id="userLevelDisplay"></div>
+        <span class="permission-badge" id="permBadge"></span>
+      </div>
+
+      <!-- Navegação principal -->
+      <div class="nav-section">
+        <div class="nav-label">Menu</div>
+
+        <!-- data-page: qual seção abrir | data-perm: permissão mínima -->
+        <button class="nav-btn active" data-page="dashboard" data-perm="all">
+          <i class="fas fa-chart-line"></i> Dashboard
+        </button>
+        <button class="nav-btn" data-page="alunos" data-perm="admin,gerente">
+          <i class="fas fa-users"></i> Alunos
+          <i class="fas fa-lock lock-icon"></i>
+        </button>
+        <button class="nav-btn" data-page="planos" data-perm="all">
+          <i class="fas fa-calendar-week"></i> Planos de Treino
+        </button>
+        <button class="nav-btn" data-page="funcionarios" data-perm="admin">
+          <i class="fas fa-user-tie"></i> Funcionários
+          <i class="fas fa-lock lock-icon"></i>
+        </button>
+        <button class="nav-btn" data-page="pagamentos" data-perm="admin,gerente">
+          <i class="fas fa-credit-card"></i> Pagamentos
+          <i class="fas fa-lock lock-icon"></i>
+        </button>
+        <button class="nav-btn" data-page="cronograma" data-perm="all">
+          <i class="fas fa-calendar-alt"></i> Cronograma
+        </button>
+        <button class="nav-btn" data-page="relatorios" data-perm="admin,gerente">
+          <i class="fas fa-file-alt"></i> Relatórios
+          <i class="fas fa-lock lock-icon"></i>
+        </button>
+      </div>
+
+      <div class="sidebar-spacer"></div>
+
+      <div class="sidebar-footer">
+        <button class="nav-btn logout-btn" onclick="logout()">
+          <i class="fas fa-sign-out-alt"></i> Sair
+        </button>
+      </div>
+    </aside>
+
+    <!-- -------------------------------------------------------------------
+         ÁREA DE CONTEÚDO
+    ------------------------------------------------------------------- -->
+    <main class="content-area">
+
+      <!-- ===============================================================
+           DASHBOARD
+      =============================================================== -->
+      <section id="dashboard-page" class="page-section active-page">
+        <div class="page-header">
+          <div>
+            <h1>Dashboard</h1>
+            <div class="sub">Visão geral da academia – <span id="welcomeUser"></span></div>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="atualizarGraficos()">
+            <i class="fas fa-sync-alt"></i> Atualizar
+          </button>
+        </div>
+
+        <!-- Cards de estatísticas -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon green"><i class="fas fa-users"></i></div>
+            <div class="stat-info">
+              <div class="stat-label">Total de Alunos</div>
+              <div class="stat-value" id="totalAlunosDash">0</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon teal"><i class="fas fa-user-tie"></i></div>
+            <div class="stat-info">
+              <div class="stat-label">Funcionários</div>
+              <div class="stat-value" id="totalFuncDash">0</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon amber"><i class="fas fa-dollar-sign"></i></div>
+            <div class="stat-info">
+              <div class="stat-label">Receita Total</div>
+              <div class="stat-value" id="receitaMes">R$ 0</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon slate"><i class="fas fa-calendar-week"></i></div>
+            <div class="stat-info">
+              <div class="stat-label">Planos Ativos</div>
+              <div class="stat-value" id="planosAtivos">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- IA Insight Card -->
+        <div class="ia-card">
+          <div>
+            <div class="ia-title"><i class="fas fa-robot"></i> IA Insights</div>
+            <div class="ia-msg" id="iaBootMessage">Clique em "Gerar Insight" para receber uma análise automática dos dados da academia.</div>
+          </div>
+          <button class="btn-ia" onclick="gerarBootIA()">
+            <i class="fas fa-magic"></i> Gerar Insight
+          </button>
+        </div>
+
+        <!-- Gráficos Chart.js -->
+        <div class="charts-grid">
+          <!-- Gráfico 1: Receita mensal (barras) -->
+          <div class="chart-card">
+            <div class="chart-title"><i class="fas fa-chart-bar"></i> Receita por Mês (R$)</div>
+            <div class="chart-canvas-wrap">
+              <canvas id="chartReceita"></canvas>
+            </div>
+          </div>
+
+          <!-- Gráfico 2: Distribuição de status dos alunos (donut) -->
+          <div class="chart-card">
+            <div class="chart-title"><i class="fas fa-chart-pie"></i> Status dos Alunos</div>
+            <div class="chart-canvas-wrap">
+              <canvas id="chartAlunos"></canvas>
+            </div>
+          </div>
+
+          <!-- Gráfico 3: Alunos por plano (barras horizontais) -->
+          <div class="chart-card">
+            <div class="chart-title"><i class="fas fa-chart-bar"></i> Alunos por Plano</div>
+            <div class="chart-canvas-wrap">
+              <canvas id="chartPlanos"></canvas>
+            </div>
+          </div>
+
+          <!-- Gráfico 4: Ocupação por horário (linha) -->
+          <div class="chart-card">
+            <div class="chart-title"><i class="fas fa-chart-line"></i> Ocupação por Horário</div>
+            <div class="chart-canvas-wrap">
+              <canvas id="chartOcupacao"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===============================================================
+           GESTÃO DE ALUNOS
+           Permissão: admin e gerente
+      =============================================================== -->
+      <section id="alunos-page" class="page-section">
+        <div class="page-header">
+          <div>
+            <h1>Gestão de Alunos</h1>
+            <div class="sub">Cadastro e controle de alunos matriculados</div>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button class="btn btn-export btn-sm" onclick="exportarAlunos()">
+              <i class="fas fa-file-csv"></i> Exportar CSV
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="abrirModalRelAluno()">
+              <i class="fas fa-file-pdf"></i> Relatório
+            </button>
+          </div>
+        </div>
+
+        <!-- Formulário de cadastro -->
+        <div class="form-card">
+          <h3><i class="fas fa-user-plus"></i> Novo Aluno</h3>
+          <div class="form-row">
+            <div class="input-group">
+              <label>Nome completo</label>
+              <input type="text" id="alunoNome" class="form-control" placeholder="Ex: Maria Silva">
+            </div>
+            <div class="input-group">
+              <label>Tipo de Plano</label>
+              <input type="text" id="alunoPlano" class="form-control" placeholder="Mensal / Anual">
+            </div>
+            <div class="input-group">
+              <label>Status</label>
+              <select id="alunoStatus" class="form-control">
+                <option>Ativo</option>
+                <option>Inativo</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>Plano de Treino</label>
+              <select id="alunoPlanoPersonalizado" class="form-control"></select>
+            </div>
+            <button class="btn btn-primary" onclick="salvarAluno()">
+              <i class="fas fa-save"></i> Salvar
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabela de alunos -->
+        <div class="table-wrap">
+          <div class="table-header">
+            <h3>Lista de Alunos</h3>
+            <span class="badge badge-info" id="totalAlunosLabel">0 alunos</span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Plano</th>
+                <th>Status</th>
+                <th>Plano de Treino</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tabelaAlunos"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ===============================================================
+           PLANOS DE TREINO
+           Permissão: todos
+      =============================================================== -->
+      <section id="planos-page" class="page-section">
+        <div class="page-header">
+          <div>
+            <h1>Planos de Treino</h1>
+            <div class="sub">Semanas 1, 2 e 3 com exercícios por dia</div>
+          </div>
+        </div>
+
+        <!-- Criar novo plano -->
+        <div class="form-card">
+          <h3><i class="fas fa-plus-circle"></i> Criar Novo Plano</h3>
+          <div class="form-row">
+            <div class="input-group">
+              <label>Nome do Plano</label>
+              <input type="text" id="novoPlanoNome" class="form-control" placeholder="Ex: Hipertrofia Avançada">
+            </div>
+            <div class="input-group">
+              <label>Nível</label>
+              <select id="novoPlanoNivel" class="form-control">
+                <option>Iniciante</option>
+                <option>Intermediário</option>
+                <option>Avançado</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="criarPlano()">
+              <i class="fas fa-plus"></i> Criar
+            </button>
+          </div>
+        </div>
+
+        <div id="planosLista"></div>
+      </section>
+
+      <!-- ===============================================================
+           FUNCIONÁRIOS
+           Permissão: somente admin
+      =============================================================== -->
+      <section id="funcionarios-page" class="page-section">
+        <div class="page-header">
+          <div>
+            <h1>Funcionários</h1>
+            <div class="sub">Equipe da academia</div>
+          </div>
+          <button class="btn btn-export btn-sm" onclick="exportarFuncionarios()">
+            <i class="fas fa-file-csv"></i> Exportar CSV
+          </button>
+        </div>
+
+        <div class="form-card">
+          <h3><i class="fas fa-user-plus"></i> Novo Funcionário</h3>
+          <div class="form-row">
+            <div class="input-group">
+              <label>Nome</label>
+              <input type="text" id="funcNome" class="form-control" placeholder="Nome completo">
+            </div>
+            <div class="input-group">
+              <label>Cargo</label>
+              <input type="text" id="funcCargo" class="form-control" placeholder="Ex: Personal Trainer">
+            </div>
+            <div class="input-group">
+              <label>Especialidade</label>
+              <input type="text" id="funcEspecialidade" class="form-control" placeholder="Ex: Musculação, Yoga">
+            </div>
+            <button class="btn btn-primary" onclick="salvarFuncionario()">
+              <i class="fas fa-save"></i> Adicionar
+            </button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <div class="table-header"><h3>Equipe</h3></div>
+          <table>
+            <thead><tr><th>Nome</th><th>Cargo</th><th>Especialidade</th><th>Ações</th></tr></thead>
+            <tbody id="tabelaFuncionarios"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ===============================================================
+           PAGAMENTOS
+           Permissão: admin e gerente
+      =============================================================== -->
+      <section id="pagamentos-page" class="page-section">
+        <div class="page-header">
+          <div>
+            <h1>Pagamentos</h1>
+            <div class="sub">Registro e controle financeiro</div>
+          </div>
+          <button class="btn btn-export btn-sm" onclick="exportarPagamentos()">
+            <i class="fas fa-file-csv"></i> Exportar CSV
+          </button>
+        </div>
+
+        <div class="form-card">
+          <h3><i class="fas fa-plus-circle"></i> Registrar Pagamento</h3>
+          <div class="form-row">
+            <div class="input-group">
+              <label>Aluno</label>
+              <select id="pagAlunoSelect" class="form-control"></select>
+            </div>
+            <div class="input-group">
+              <label>Valor (R$)</label>
+              <input type="number" id="pagValor" class="form-control" placeholder="0.00" min="0">
+            </div>
+            <div class="input-group">
+              <label>Data</label>
+              <input type="date" id="pagData" class="form-control">
+            </div>
+            <button class="btn btn-primary" onclick="registrarPagamento()">
+              <i class="fas fa-check"></i> Registrar
+            </button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <div class="table-header">
+            <h3>Histórico de Pagamentos</h3>
+            <strong id="totalReceitaLabel" style="color:var(--verde-medio)">Total: R$ 0</strong>
+          </div>
+          <table>
+            <thead><tr><th>Aluno</th><th>Valor</th><th>Data</th><th>Status</th></tr></thead>
+            <tbody id="tabelaPagamentos"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ===============================================================
+           CRONOGRAMA
+           Permissão: todos
+      =============================================================== -->
+      <section id="cronograma-page" class="page-section">
+        <div class="page-header">
+          <div>
+            <h1>Cronograma de Aulas</h1>
+            <div class="sub">Agendamento e controle de turmas</div>
+          </div>
+        </div>
+
+        <div class="form-card">
+          <h3><i class="fas fa-plus-circle"></i> Agendar Aula</h3>
+          <div class="form-row">
+            <div class="input-group">
+              <label>Nome da Aula</label>
+              <input type="text" id="aulaNome" class="form-control" placeholder="Ex: Spinning">
+            </div>
+            <div class="input-group">
+              <label>Instrutor</label>
+              <input type="text" id="aulaInstrutor" class="form-control" placeholder="Nome do instrutor">
+            </div>
+            <div class="input-group">
+              <label>Horário</label>
+              <input type="time" id="aulaHorario" class="form-control">
+            </div>
+            <button class="btn btn-primary" onclick="adicionarAula()">
+              <i class="fas fa-calendar-plus"></i> Agendar
+            </button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <div class="table-header"><h3>Aulas Agendadas</h3></div>
+          <table>
+            <thead><tr><th>Aula</th><th>Instrutor</th><th>Horário</th><th>Ações</th></tr></thead>
+            <tbody id="tabelaAulas"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ===============================================================
+           RELATÓRIOS
+           Permissão: admin e gerente
+      =============================================================== -->
+      <section id="relatorios-page" class="page-section">
+        <div class="page-header">
+          <div>
+            <h1>Relatórios</h1>
+            <div class="sub">Exportação e resumos gerenciais</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;">
+
+          <!-- Card relatório alunos -->
+          <div class="card">
+            <div class="card-body" style="text-align:center;">
+              <div style="font-size:2.5rem;margin-bottom:12px;">👥</div>
+              <h3 style="font-size:1rem;margin-bottom:8px;">Relatório de Alunos</h3>
+              <p style="font-size:.83rem;color:var(--text-muted);margin-bottom:16px;">Lista completa com status e planos vinculados.</p>
+              <button class="btn btn-export" onclick="exportarAlunos()"><i class="fas fa-file-csv"></i> Exportar CSV</button>
+            </div>
+          </div>
+
+          <!-- Card relatório financeiro -->
+          <div class="card">
+            <div class="card-body" style="text-align:center;">
+              <div style="font-size:2.5rem;margin-bottom:12px;">💰</div>
+              <h3 style="font-size:1rem;margin-bottom:8px;">Relatório Financeiro</h3>
+              <p style="font-size:.83rem;color:var(--text-muted);margin-bottom:16px;">Histórico de pagamentos e receita total.</p>
+              <button class="btn btn-export" onclick="exportarPagamentos()"><i class="fas fa-file-csv"></i> Exportar CSV</button>
+            </div>
+          </div>
+
+          <!-- Card relatório funcionários -->
+          <div class="card">
+            <div class="card-body" style="text-align:center;">
+              <div style="font-size:2.5rem;margin-bottom:12px;">🧑‍💼</div>
+              <h3 style="font-size:1rem;margin-bottom:8px;">Relatório de Funcionários</h3>
+              <p style="font-size:.83rem;color:var(--text-muted);margin-bottom:16px;">Cargos e especialidades da equipe.</p>
+              <button class="btn btn-export" onclick="exportarFuncionarios()"><i class="fas fa-file-csv"></i> Exportar CSV</button>
+            </div>
+          </div>
+
+          <!-- Card resumo geral (texto imprimível) -->
+          <div class="card">
+            <div class="card-body" style="text-align:center;">
+              <div style="font-size:2.5rem;margin-bottom:12px;">📋</div>
+              <h3 style="font-size:1rem;margin-bottom:8px;">Resumo Geral</h3>
+              <p style="font-size:.83rem;color:var(--text-muted);margin-bottom:16px;">Visão consolidada para impressão ou apresentação.</p>
+              <button class="btn btn-primary btn-sm" onclick="imprimirResumo()"><i class="fas fa-print"></i> Imprimir / PDF</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Área de resumo textual -->
+        <div class="form-card" style="margin-top:24px;">
+          <h3><i class="fas fa-chart-bar"></i> Resumo Atual do Sistema</h3>
+          <div id="resumoGeral" style="font-size:.9rem;line-height:1.8;color:var(--text-primary);margin-top:12px;"></div>
+        </div>
+      </section>
+
+    </main><!-- fim content-area -->
+  </div><!-- fim main-layout -->
+
+  <footer class="footer">
+    © 2026 FitFlow Pro · Projeto Acadêmico · Todos os dados armazenados localmente (localStorage)
+  </footer>
+</div><!-- fim appContainer -->
+
+<!-- =======================================================================
+     SCRIPTS JAVASCRIPT
+     Organizado em módulos lógicos com comentários didáticos.
+======================================================================= -->
+<script>
+/* =========================================================================
+   1. ESTADO GLOBAL DA APLICAÇÃO
+   Todas as variáveis de estado ficam aqui para fácil localização.
+========================================================================= */
+let alunos       = JSON.parse(localStorage.getItem("alunos"))       || [];
+let funcionarios = JSON.parse(localStorage.getItem("funcionarios")) || [];
+let pagamentos   = JSON.parse(localStorage.getItem("pagamentos"))   || [];
+let aulas        = JSON.parse(localStorage.getItem("aulas"))        || [];
+let planos       = JSON.parse(localStorage.getItem("planos"))       || [];
+let currentUser  = null;   // nome do usuário logado
+let currentLevel = null;   // perfil: admin | gerente | instrutor
+
+// Referências dos gráficos Chart.js (precisamos guardá-las para destruir antes de recriar)
+let charts = {};
+
+/* =========================================================================
+   2. DADOS PADRÃO (SEED)
+   Se o banco local estiver vazio, inserimos planos de exemplo.
+========================================================================= */
+if (planos.length === 0) {
+  planos = [
+    {
+      id: "1", nome: "Hipertrofia Básica", nivel: "Iniciante",
+      semanas: [
+        { semana: 1, dias: [
+          { dia: "Segunda", ex: ["Supino Reto 3x12", "Crucifixo 3x12", "Tríceps Pulley 3x15"] },
+          { dia: "Quarta",  ex: ["Puxada Frontal 3x12", "Remada Curvada 3x12", "Rosca Direta 3x15"] },
+          { dia: "Sexta",   ex: ["Agachamento 3x12", "Leg Press 3x15", "Panturrilha 3x20"] }
+        ]},
+        { semana: 2, dias: [
+          { dia: "Segunda", ex: ["Supino Inclinado 4x10", "Voador 4x10", "Tríceps Francês 3x12"] },
+          { dia: "Quarta",  ex: ["Barra Fixa 4x8", "Remada Máquina 4x10", "Rosca Martelo 3x12"] },
+          { dia: "Sexta",   ex: ["Agachamento Búlgaro 4x10", "Cadeira Extensora 4x12"] }
+        ]},
+        { semana: 3, dias: [
+          { dia: "Segunda", ex: ["Supino Reto 5x8", "Supino Declinado 4x8"] },
+          { dia: "Quarta",  ex: ["Puxada Triângulo 4x10", "Remada Unilateral 4x10"] },
+          { dia: "Sexta",   ex: ["Stiff 4x10", "Leg Press 4x12", "Extensão Lombar 3x15"] }
+        ]}
+      ]
+    },
+    {
+      id: "2", nome: "Emagrecimento HIIT", nivel: "Intermediário",
+      semanas: [
+        { semana: 1, dias: [
+          { dia: "Segunda", ex: ["HIIT 20min", "Burpees 3x15", "Abdominal 3x20"] },
+          { dia: "Quarta",  ex: ["Corrida 5km", "Polichinelo 4x30", "Prancha 3x45s"] },
+          { dia: "Sexta",   ex: ["Circuito Funcional 30min"] }
+        ]},
+        { semana: 2, dias: [
+          { dia: "Segunda", ex: ["HIIT 25min", "Mountain Climber 3x20"] },
+          { dia: "Quarta",  ex: ["Corrida Intervalada 6km", "Agachamento Livre 4x15"] },
+          { dia: "Sexta",   ex: ["Boxe Funcional 30min", "Core 15min"] }
+        ]},
+        { semana: 3, dias: [
+          { dia: "Segunda", ex: ["HIIT Avançado 30min", "Burpee 4x12"] },
+          { dia: "Quarta",  ex: ["Corrida 7km", "Jumping Jacks 4x40"] },
+          { dia: "Sexta",   ex: ["Circuito Total Body 40min"] }
+        ]}
+      ]
+    }
+  ];
+  localStorage.setItem("planos", JSON.stringify(planos));
+}
+
+/* =========================================================================
+   3. SISTEMA DE PERMISSÕES
+   Define o que cada perfil pode acessar ou fazer.
+========================================================================= */
+
+/**
+ * Mapa de permissões por página.
+ * "all" = qualquer perfil tem acesso.
+ * Lista de perfis = somente esses perfis podem acessar.
+ */
+const PERMISSIONS = {
+  dashboard:     ["all"],
+  planos:        ["all"],
+  cronograma:    ["all"],
+  alunos:        ["admin", "gerente"],
+  pagamentos:    ["admin", "gerente"],
+  funcionarios:  ["admin"],
+  relatorios:    ["admin", "gerente"],
+};
+
+/**
+ * Verifica se o usuário atual tem permissão para uma página.
+ * @param {string} page - Identificador da página
+ * @returns {boolean}
+ */
+function temPermissao(page) {
+  const perms = PERMISSIONS[page] || [];
+  if (perms.includes("all")) return true;
+  return perms.includes(currentLevel);
+}
+
+/**
+ * Aplica o estado visual dos botões do menu de acordo com as permissões.
+ * Botões bloqueados recebem a classe .locked (CSS: opacidade e pointer-events: none).
+ */
+function aplicarPermissoes() {
+  document.querySelectorAll(".nav-btn[data-page]").forEach(btn => {
+    const page = btn.getAttribute("data-page");
+    const lockIcon = btn.querySelector(".lock-icon");
+
+    if (temPermissao(page)) {
+      btn.classList.remove("locked");
+      if (lockIcon) lockIcon.style.display = "none";
+    } else {
+      btn.classList.add("locked");
+      if (lockIcon) lockIcon.style.display = "inline";
+    }
+  });
+
+  // Badge de permissão no card do usuário
+  const badge = document.getElementById("permBadge");
+  if (badge) {
+    const labels = { admin: "Administrador", gerente: "Gerente", instrutor: "Instrutor" };
+    badge.textContent = labels[currentLevel] || currentLevel;
+    badge.className = `permission-badge perm-${currentLevel}`;
+  }
+
+  // Ocultar botões de ação destrutiva para gerente e instrutor
+  if (currentLevel !== "admin") {
+    // Gerente não pode excluir funcionários
+    document.querySelectorAll(".btn-excluir-func").forEach(b => b.style.display = "none");
+  }
+}
+
+/* =========================================================================
+   4. AUTENTICAÇÃO
+========================================================================= */
+
+/**
+ * Realiza o login: valida credenciais e inicializa a aplicação.
+ */
+window.fazerLogin = function () {
+  const user  = document.getElementById("loginUser").value.trim();
+  const pass  = document.getElementById("loginPass").value;
+  const level = document.getElementById("loginLevel").value;
+
+  // Credenciais válidas (em produção, isso seria verificado no backend)
+  const validUsers = ["admin", "gerente", "instrutor"];
+
+  if (validUsers.includes(user) && pass === "123") {
+    currentUser  = user;
+    currentLevel = level;
+
+    // Persiste sessão no localStorage
+    localStorage.setItem("loggedUser",  currentUser);
+    localStorage.setItem("userLevel",   currentLevel);
+
+    inicializarApp();
+  } else {
+    alert("Credenciais inválidas! Use: admin/123, gerente/123 ou instrutor/123");
+  }
+};
+
+/**
+ * Encerra a sessão e volta para a tela de login.
+ */
+window.logout = function () {
+  localStorage.removeItem("loggedUser");
+  localStorage.removeItem("userLevel");
+  currentUser = null; currentLevel = null;
+
+  // Destroi todos os gráficos ao sair para evitar memory leak
+  Object.values(charts).forEach(c => c && c.destroy());
+  charts = {};
+
+  document.getElementById("appContainer").style.display = "none";
+  document.getElementById("loginOverlay").style.display = "flex";
+};
+
+/**
+ * Inicializa a interface após o login bem-sucedido.
+ */
+function inicializarApp() {
+  document.getElementById("loginOverlay").style.display  = "none";
+  document.getElementById("appContainer").style.display  = "block";
+  document.getElementById("userNameDisplay").textContent = currentUser;
+  document.getElementById("userLevelDisplay").textContent = currentLevel;
+  document.getElementById("welcomeUser").textContent      = currentUser;
+
+  aplicarPermissoes();
+  renderAll();
+  initGraficos();
+}
+
+/* =========================================================================
+   5. NAVEGAÇÃO
+========================================================================= */
+document.querySelectorAll(".nav-btn[data-page]").forEach(btn => {
+  btn.addEventListener("click", function () {
+    const page = this.getAttribute("data-page");
+
+    // Bloqueia navegação se sem permissão (segurança extra no JS)
+    if (!temPermissao(page)) {
+      showToast("⛔ Acesso não autorizado para seu perfil.", "danger");
+      return;
+    }
+
+    // Atualiza estado visual dos botões e seções
+    document.querySelectorAll(".page-section").forEach(s => s.classList.remove("active-page"));
+    document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+    document.getElementById(`${page}-page`).classList.add("active-page");
+    this.classList.add("active");
+
+    // Atualiza gráficos quando volta ao dashboard
+    if (page === "dashboard") atualizarGraficos();
+
+    // Atualiza resumo ao abrir relatórios
+    if (page === "relatorios") renderResumoGeral();
+  });
+});
+
+/* =========================================================================
+   6. NOTIFICAÇÕES (TOAST)
+========================================================================= */
+
+/**
+ * Exibe uma notificação temporária no canto inferior direito.
+ * @param {string} msg - Mensagem a exibir
+ * @param {string} type - "success" | "danger" (afeta a cor)
+ */
+function showToast(msg, type = "success") {
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.style.background = type === "danger" ? "#9b2c2c" : "var(--verde-escuro)";
+  toast.innerHTML = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2800);
+}
+
+/* =========================================================================
+   7. ALUNOS
+========================================================================= */
+window.salvarAluno = function () {
+  const nome    = document.getElementById("alunoNome").value.trim();
+  const plano   = document.getElementById("alunoPlano").value.trim();
+  const status  = document.getElementById("alunoStatus").value;
+  const planoId = document.getElementById("alunoPlanoPersonalizado").value;
+
+  if (!nome) return showToast("⚠️ Nome é obrigatório!", "danger");
+
+  const planoObj = planos.find(p => p.id === planoId);
+
+  alunos.push({ nome, plano, status, planoId, planoNome: planoObj ? planoObj.nome : "" });
+  localStorage.setItem("alunos", JSON.stringify(alunos));
+
+  // Limpa os campos após salvar
+  document.getElementById("alunoNome").value = "";
+  document.getElementById("alunoPlano").value = "";
+
+  renderAlunos();
+  renderDashboard();
+  atualizarGraficos();
+  showToast("✅ Aluno cadastrado com sucesso!");
+};
+
+function renderAlunos() {
+  const tbody = document.getElementById("tabelaAlunos");
+  const label = document.getElementById("totalAlunosLabel");
+  if (!tbody) return;
+
+  if (alunos.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:24px">Nenhum aluno cadastrado</td></tr>`;
+  } else {
+    tbody.innerHTML = alunos.map((a, i) => `
+      <tr>
+        <td><strong>${a.nome}</strong></td>
+        <td>${a.plano || "—"}</td>
+        <td><span class="badge ${a.status === 'Ativo' ? 'badge-success' : 'badge-warning'}">${a.status}</span></td>
+        <td>${a.planoNome || "—"}</td>
+        <td>
+          ${currentLevel !== "instrutor"
+            ? `<button class="btn btn-danger btn-sm btn-excluir-func" onclick="excluirAluno(${i})"><i class="fas fa-trash"></i> Excluir</button>`
+            : `<span style="color:var(--text-muted);font-size:.78rem">Sem permissão</span>`}
+        </td>
+      </tr>
+    `).join("");
+  }
+
+  if (label) label.textContent = `${alunos.length} aluno${alunos.length !== 1 ? 's' : ''}`;
+
+  // Atualiza o select de planos no formulário de alunos
+  const sel = document.getElementById("alunoPlanoPersonalizado");
+  if (sel) sel.innerHTML = '<option value="">Sem plano</option>' + planos.map(p => `<option value="${p.id}">${p.nome} – ${p.nivel}</option>`).join('');
+
+  // Atualiza o select de pagamentos
+  const pagSel = document.getElementById("pagAlunoSelect");
+  if (pagSel) pagSel.innerHTML = alunos.map((a, i) => `<option value="${i}">${a.nome}</option>`).join('');
+}
+
+window.excluirAluno = function (i) {
+  if (!confirm("Confirma a exclusão deste aluno?")) return;
+  alunos.splice(i, 1);
+  localStorage.setItem("alunos", JSON.stringify(alunos));
+  renderAlunos();
+  renderDashboard();
+  atualizarGraficos();
+  showToast("🗑️ Aluno removido.");
+};
+
+/* =========================================================================
+   8. FUNCIONÁRIOS
+========================================================================= */
+window.salvarFuncionario = function () {
+  const nome = document.getElementById("funcNome").value.trim();
+  if (!nome) return showToast("⚠️ Nome é obrigatório!", "danger");
+
+  funcionarios.push({
+    nome,
+    cargo:         document.getElementById("funcCargo").value,
+    especialidade: document.getElementById("funcEspecialidade").value
+  });
+  localStorage.setItem("funcionarios", JSON.stringify(funcionarios));
+  document.getElementById("funcNome").value = "";
+  renderFuncionarios();
+  renderDashboard();
+  showToast("✅ Funcionário adicionado!");
+};
+
+function renderFuncionarios() {
+  const tbody = document.getElementById("tabelaFuncionarios");
+  if (!tbody) return;
+
+  if (funcionarios.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:24px">Nenhum funcionário cadastrado</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = funcionarios.map((f, i) => `
+    <tr>
+      <td><strong>${f.nome}</strong></td>
+      <td>${f.cargo || "—"}</td>
+      <td>${f.especialidade || "—"}</td>
+      <td>
+        ${currentLevel === "admin"
+          ? `<button class="btn btn-danger btn-sm btn-excluir-func" onclick="excluirFunc(${i})"><i class="fas fa-trash"></i> Excluir</button>`
+          : `<span style="color:var(--text-muted);font-size:.78rem">Somente admin</span>`}
+      </td>
+    </tr>
+  `).join("");
+}
+
+window.excluirFunc = function (i) {
+  if (!confirm("Confirma a exclusão?")) return;
+  funcionarios.splice(i, 1);
+  localStorage.setItem("funcionarios", JSON.stringify(funcionarios));
+  renderFuncionarios();
+  renderDashboard();
+  showToast("🗑️ Funcionário removido.");
+};
+
+/* =========================================================================
+   9. PAGAMENTOS
+========================================================================= */
+window.registrarPagamento = function () {
+  const idx   = document.getElementById("pagAlunoSelect").value;
+  const valor = document.getElementById("pagValor").value;
+  const data  = document.getElementById("pagData").value || new Date().toISOString().slice(0, 10);
+
+  if (!valor || parseFloat(valor) <= 0) return showToast("⚠️ Insira um valor válido.", "danger");
+  if (!alunos[idx]) return showToast("⚠️ Selecione um aluno.", "danger");
+
+  pagamentos.push({ aluno: alunos[idx].nome, valor: parseFloat(valor), data });
+  localStorage.setItem("pagamentos", JSON.stringify(pagamentos));
+
+  document.getElementById("pagValor").value = "";
+  renderPagamentos();
+  renderDashboard();
+  atualizarGraficos();
+  showToast("✅ Pagamento registrado!");
+};
+
+function renderPagamentos() {
+  const tbody = document.getElementById("tabelaPagamentos");
+  const totalLabel = document.getElementById("totalReceitaLabel");
+  if (!tbody) return;
+
+  const total = pagamentos.reduce((s, p) => s + (parseFloat(p.valor) || 0), 0);
+  if (totalLabel) totalLabel.textContent = `Total: R$ ${total.toFixed(2)}`;
+
+  if (pagamentos.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:24px">Nenhum pagamento registrado</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = pagamentos.map(p => `
+    <tr>
+      <td>${p.aluno}</td>
+      <td><strong>R$ ${parseFloat(p.valor).toFixed(2)}</strong></td>
+      <td>${p.data}</td>
+      <td><span class="badge badge-success">✅ Pago</span></td>
+    </tr>
+  `).join("");
+}
+
+/* =========================================================================
+   10. AULAS / CRONOGRAMA
+========================================================================= */
+window.adicionarAula = function () {
+  const nome      = document.getElementById("aulaNome").value.trim();
+  const instrutor = document.getElementById("aulaInstrutor").value.trim();
+  const horario   = document.getElementById("aulaHorario").value;
+
+  if (!nome || !instrutor) return showToast("⚠️ Preencha nome e instrutor.", "danger");
+
+  aulas.push({ nome, instrutor, horario });
+  localStorage.setItem("aulas", JSON.stringify(aulas));
+
+  document.getElementById("aulaNome").value = "";
+  document.getElementById("aulaInstrutor").value = "";
+  renderAulas();
+  showToast("✅ Aula agendada!");
+};
+
+function renderAulas() {
+  const tbody = document.getElementById("tabelaAulas");
+  if (!tbody) return;
+
+  if (aulas.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:24px">Nenhuma aula agendada</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = aulas.map((a, i) => `
+    <tr>
+      <td><strong>${a.nome}</strong></td>
+      <td>${a.instrutor}</td>
+      <td>${a.horario || "—"}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="excluirAula(${i})"><i class="fas fa-trash"></i></button></td>
+    </tr>
+  `).join("");
+}
+
+window.excluirAula = function (i) {
+  aulas.splice(i, 1);
+  localStorage.setItem("aulas", JSON.stringify(aulas));
+  renderAulas();
+  showToast("🗑️ Aula removida.");
+};
+
+/* =========================================================================
+   11. PLANOS DE TREINO
+========================================================================= */
+window.criarPlano = function () {
+  const nome  = document.getElementById("novoPlanoNome").value.trim();
+  const nivel = document.getElementById("novoPlanoNivel").value;
+
+  if (!nome) return showToast("⚠️ Digite o nome do plano.", "danger");
+
+  planos.push({
+    id: Date.now().toString(), nome, nivel,
+    semanas: [
+      { semana: 1, dias: [] },
+      { semana: 2, dias: [] },
+      { semana: 3, dias: [] }
+    ]
+  });
+  localStorage.setItem("planos", JSON.stringify(planos));
+  document.getElementById("novoPlanoNome").value = "";
+  renderPlanos();
+  showToast("✅ Plano criado!");
+};
+
+window.togglePlano = function (id) {
+  const el = document.getElementById(`plano-content-${id}`);
+  const chev = document.getElementById(`chev-${id}`);
+  if (!el) return;
+  el.classList.toggle("open");
+  if (chev) chev.style.transform = el.classList.contains("open") ? "rotate(180deg)" : "";
+};
+
+window.adicionarExercicio = function (planoId, semana, dia) {
+  const ex = prompt(`Adicionar exercício em ${dia} – Semana ${semana}:\n(Ex: Supino 3x12)`);
+  if (!ex) return;
+
+  const plano    = planos.find(p => p.id === planoId);
+  const semObj   = plano.semanas.find(s => s.semana === semana);
+  const diaObj   = semObj.dias.find(d => d.dia === dia);
+
+  if (diaObj) diaObj.ex.push(ex);
+  else semObj.dias.push({ dia, ex: [ex] });
+
+  localStorage.setItem("planos", JSON.stringify(planos));
+  renderPlanos();
+  showToast("✅ Exercício adicionado!");
+};
+
+window.removerExercicio = function (planoId, semana, dia, idx) {
+  const plano  = planos.find(p => p.id === planoId);
+  const semObj = plano.semanas.find(s => s.semana === semana);
+  const diaObj = semObj.dias.find(d => d.dia === dia);
+  diaObj.ex.splice(idx, 1);
+  if (diaObj.ex.length === 0) semObj.dias = semObj.dias.filter(d => d.dia !== dia);
+  localStorage.setItem("planos", JSON.stringify(planos));
+  renderPlanos();
+};
+
+window.adicionarDiaPlano = function (planoId, semana) {
+  const dia = prompt("Nome do dia (Ex: Segunda, Terça, Quarta...):");
+  if (!dia) return;
+  const plano  = planos.find(p => p.id === planoId);
+  const semObj = plano.semanas.find(s => s.semana === semana);
+  if (semObj.dias.find(d => d.dia === dia)) return showToast("⚠️ Dia já existe!", "danger");
+  semObj.dias.push({ dia, ex: [] });
+  localStorage.setItem("planos", JSON.stringify(planos));
+  renderPlanos();
+};
+
+window.excluirPlano = function (id) {
+  if (!confirm("Excluir este plano?")) return;
+  planos = planos.filter(p => p.id !== id);
+  localStorage.setItem("planos", JSON.stringify(planos));
+  renderPlanos();
+  showToast("🗑️ Plano excluído.");
+};
+
+function renderPlanos() {
+  const container = document.getElementById("planosLista");
+  if (!container) return;
+
+  container.innerHTML = planos.map(plano => `
+    <div class="plano-card">
+      <div class="plano-header" onclick="togglePlano('${plano.id}')">
+        <div>
+          <h3>📅 ${plano.nome}</h3>
+          <div class="plano-meta">Nível: ${plano.nivel} · ${plano.semanas.length} semanas</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:white;border:1px solid rgba(255,255,255,.3);"
+            onclick="event.stopPropagation(); excluirPlano('${plano.id}')">
+            <i class="fas fa-trash"></i>
+          </button>
+          <i class="fas fa-chevron-down plano-chevron" id="chev-${plano.id}" style="transition:transform .25s"></i>
+        </div>
+      </div>
+
+      <div class="plano-content" id="plano-content-${plano.id}">
+        ${plano.semanas.map(sem => `
+          <div class="semana-block">
+            <div class="semana-title">Semana ${sem.semana}</div>
+            ${sem.dias.map(dia => `
+              <div class="dia-card">
+                <div class="dia-header">
+                  <strong>📌 ${dia.dia}</strong>
+                  <button class="btn btn-outline btn-sm" onclick="adicionarExercicio('${plano.id}', ${sem.semana}, '${dia.dia}')">
+                    <i class="fas fa-plus"></i> Exercício
+                  </button>
+                </div>
+                ${dia.ex.map((ex, idx) => `
+                  <div class="exercicio-row">
+                    🏋️ ${ex}
+                    <button class="btn btn-danger btn-sm" onclick="removerExercicio('${plano.id}', ${sem.semana}, '${dia.dia}', ${idx})">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                `).join('')}
+              </div>
+            `).join('')}
+            <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="adicionarDiaPlano('${plano.id}', ${sem.semana})">
+              <i class="fas fa-calendar-plus"></i> Adicionar Dia
+            </button>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+
+  // Atualiza o select de planos no formulário de alunos
+  const sel = document.getElementById("alunoPlanoPersonalizado");
+  if (sel) sel.innerHTML = '<option value="">Sem plano</option>' + planos.map(p => `<option value="${p.id}">${p.nome} – ${p.nivel}</option>`).join('');
+}
+
+/* =========================================================================
+   12. DASHBOARD – STATS
+========================================================================= */
+function renderDashboard() {
+  const total = pagamentos.reduce((s, p) => s + (parseFloat(p.valor) || 0), 0);
+
+  document.getElementById("totalAlunosDash").textContent = alunos.length;
+  document.getElementById("totalFuncDash").textContent   = funcionarios.length;
+  document.getElementById("receitaMes").textContent      = `R$ ${total.toFixed(2)}`;
+  document.getElementById("planosAtivos").textContent    = planos.length;
+}
+
+/* =========================================================================
+   13. IA INSIGHT – lógica baseada em regras
+========================================================================= */
+window.gerarBootIA = function () {
+  const n = alunos.length;
+  const r = pagamentos.reduce((s, p) => s + (parseFloat(p.valor) || 0), 0);
+  let msg = "";
+
+  if (n === 0) {
+    msg = "📋 Nenhum aluno cadastrado ainda. Comece cadastrando os primeiros alunos para ver análises.";
+  } else if (n < 5) {
+    msg = `👋 Você tem ${n} aluno(s). Dica: invista em campanhas de divulgação e indique para conhecidos!`;
+  } else if (n < 20) {
+    msg = `📈 ${n} alunos cadastrados! Considere expandir o horário de pico (18h–20h) para aumentar capacidade.`;
+  } else {
+    msg = `🚀 Academia com ${n} alunos e R$ ${r.toFixed(2)} em receita. Hora de contratar mais instrutores!`;
+  }
+
+  // Análise de planos
+  if (planos.length === 0) {
+    msg += " ⚠️ Nenhum plano de treino criado – crie planos para vincular aos alunos.";
+  }
+
+  document.getElementById("iaBootMessage").innerHTML = `<i class="fas fa-robot"></i> ${msg}`;
+};
+
+/* =========================================================================
+   14. GRÁFICOS – Chart.js
+   Cada gráfico é criado com o método createChart() que destrói instâncias
+   anteriores para evitar sobreposição de canvas.
+========================================================================= */
+
+/**
+ * Cria ou recria um gráfico Chart.js num canvas.
+ * @param {string} id  - id do elemento <canvas>
+ * @param {object} cfg - configuração Chart.js
+ */
+function createChart(id, cfg) {
+  if (charts[id]) charts[id].destroy();
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  charts[id] = new Chart(ctx, cfg);
+}
+
+/**
+ * Inicializa todos os gráficos pela primeira vez.
+ */
+function initGraficos() {
+  atualizarGraficos();
+}
+
+/**
+ * Reconstrói todos os gráficos com os dados atuais.
+ * Chamado sempre que os dados mudam ou o usuário clica em "Atualizar".
+ */
+window.atualizarGraficos = function () {
+  // --- Gráfico 1: Receita mensal simulada ---
+  // Como não temos histórico real por mês, simulamos com dados parciais reais
+  const meses = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"];
+  const totalReal = pagamentos.reduce((s, p) => s + (parseFloat(p.valor) || 0), 0);
+  const receitaSimulada = [1200, 1450, 1300, 1700, 1600, totalReal || 0];
+
+  createChart("chartReceita", {
+    type: "bar",
+    data: {
+      labels: meses,
+      datasets: [{
+        label: "Receita (R$)",
+        data: receitaSimulada,
+        backgroundColor: "rgba(31,94,84,.75)",
+        borderColor: "#1f5e54",
+        borderWidth: 2,
+        borderRadius: 8,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, grid: { color: "#f0f0f0" } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+
+  // --- Gráfico 2: Status dos alunos (donut) ---
+  const ativos   = alunos.filter(a => a.status === "Ativo").length;
+  const inativos = alunos.filter(a => a.status === "Inativo").length;
+
+  createChart("chartAlunos", {
+    type: "doughnut",
+    data: {
+      labels: ["Ativos", "Inativos"],
+      datasets: [{
+        data: [ativos || 1, inativos],
+        backgroundColor: ["#1f5e54", "#e2ede9"],
+        borderWidth: 0,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: "bottom", labels: { font: { family: "DM Sans" } } }
+      },
+      cutout: "65%"
+    }
+  });
+
+  // --- Gráfico 3: Alunos por plano (barras horizontais) ---
+  const planoCounts = planos.map(p => ({
+    nome: p.nome,
+    total: alunos.filter(a => a.planoId === p.id).length
+  }));
+
+  createChart("chartPlanos", {
+    type: "bar",
+    data: {
+      labels: planoCounts.length ? planoCounts.map(p => p.nome) : ["Sem planos"],
+      datasets: [{
+        label: "Alunos",
+        data: planoCounts.length ? planoCounts.map(p => p.total) : [0],
+        backgroundColor: ["#2c7a6e", "#4fd1c5", "#1f5e54", "#0b2b26"],
+        borderRadius: 8,
+      }]
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { beginAtZero: true, grid: { color: "#f0f0f0" } },
+        y: { grid: { display: false } }
+      }
+    }
+  });
+
+  // --- Gráfico 4: Ocupação simulada por horário ---
+  const horarios    = ["06h", "08h", "10h", "12h", "14h", "16h", "18h", "20h"];
+  const ocupacao    = [15, 22, 18, 10, 12, 25, 87, 65]; // dados simulados (%)
+
+  createChart("chartOcupacao", {
+    type: "line",
+    data: {
+      labels: horarios,
+      datasets: [{
+        label: "% Ocupação",
+        data: ocupacao,
+        borderColor: "#4fd1c5",
+        backgroundColor: "rgba(79,209,197,.12)",
+        tension: 0.4,
+        fill: true,
+        pointBackgroundColor: "#1f5e54",
+        pointRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, max: 100, grid: { color: "#f0f0f0" } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+};
+
+/* =========================================================================
+   15. EXPORTAÇÃO DE DADOS (CSV)
+   Converte arrays JS em formato CSV para download sem bibliotecas externas.
+========================================================================= */
+
+/**
+ * Converte uma lista de objetos em string CSV.
+ * @param {string[]} headers - Nomes das colunas
+ * @param {Array[]}  rows    - Linhas de dados
+ * @returns {string} Conteúdo CSV
+ */
+function gerarCSV(headers, rows) {
+  const linhas = [headers.join(";")];
+  rows.forEach(row => linhas.push(row.map(c => `"${c}"`).join(";")));
+  return linhas.join("\n");
+}
+
+/**
+ * Cria um arquivo CSV e dispara o download no navegador.
+ * @param {string} nome - Nome do arquivo
+ * @param {string} csv  - Conteúdo CSV
+ */
+function baixarCSV(nome, csv) {
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" }); // BOM para Excel
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href = url; a.download = nome; a.click();
+  URL.revokeObjectURL(url);
+  showToast("📥 Exportação concluída!");
+}
+
+/** Exporta lista de alunos */
+window.exportarAlunos = function () {
+  const csv = gerarCSV(
+    ["Nome", "Plano", "Status", "Plano de Treino"],
+    alunos.map(a => [a.nome, a.plano, a.status, a.planoNome || "—"])
+  );
+  baixarCSV("fitflow_alunos.csv", csv);
+};
+
+/** Exporta histórico de pagamentos */
+window.exportarPagamentos = function () {
+  const csv = gerarCSV(
+    ["Aluno", "Valor (R$)", "Data", "Status"],
+    pagamentos.map(p => [p.aluno, parseFloat(p.valor).toFixed(2), p.data, "Pago"])
+  );
+  baixarCSV("fitflow_pagamentos.csv", csv);
+};
+
+/** Exporta lista de funcionários */
+window.exportarFuncionarios = function () {
+  const csv = gerarCSV(
+    ["Nome", "Cargo", "Especialidade"],
+    funcionarios.map(f => [f.nome, f.cargo, f.especialidade])
+  );
+  baixarCSV("fitflow_funcionarios.csv", csv);
+};
+
+/* =========================================================================
+   16. RELATÓRIO – RESUMO GERAL E IMPRESSÃO
+========================================================================= */
+function renderResumoGeral() {
+  const total = pagamentos.reduce((s, p) => s + (parseFloat(p.valor) || 0), 0);
+  const ativos = alunos.filter(a => a.status === "Ativo").length;
+
+  document.getElementById("resumoGeral").innerHTML = `
+    <table style="width:100%;border-collapse:collapse;font-size:.88rem;">
+      <tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:8px;color:var(--text-muted)">Total de alunos</td>
+        <td style="padding:8px;font-weight:600">${alunos.length} (${ativos} ativos)</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:8px;color:var(--text-muted)">Funcionários</td>
+        <td style="padding:8px;font-weight:600">${funcionarios.length}</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:8px;color:var(--text-muted)">Planos de treino</td>
+        <td style="padding:8px;font-weight:600">${planos.length}</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:8px;color:var(--text-muted)">Pagamentos registrados</td>
+        <td style="padding:8px;font-weight:600">${pagamentos.length}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px;color:var(--text-muted)">Receita total registrada</td>
+        <td style="padding:8px;font-weight:700;color:var(--verde-medio)">R$ ${total.toFixed(2)}</td>
+      </tr>
+    </table>
+    <p style="margin-top:14px;font-size:.78rem;color:var(--text-muted)">
+      Gerado em: ${new Date().toLocaleString("pt-BR")} · Sistema FitFlow Pro
+    </p>
+  `;
+}
+
+/**
+ * Abre a janela de impressão do navegador para gerar PDF do resumo.
+ */
+window.imprimirResumo = function () {
+  renderResumoGeral();
+  window.print();
+};
+
+/* =========================================================================
+   17. RENDERIZAÇÃO GERAL
+   Chama todos os renders de uma vez (usado após login ou alterações globais).
+========================================================================= */
+function renderAll() {
+  renderAlunos();
+  renderFuncionarios();
+  renderPagamentos();
+  renderAulas();
+  renderPlanos();
+  renderDashboard();
+  renderResumoGeral();
+}
+
+/* =========================================================================
+   18. AUTO-LOGIN
+   Se uma sessão estava ativa (localStorage), reinicializa sem pedir senha.
+========================================================================= */
+(function verificarSessao() {
+  const savedUser  = localStorage.getItem("loggedUser");
+  const savedLevel = localStorage.getItem("userLevel");
+
+  if (savedUser && savedLevel) {
+    currentUser  = savedUser;
+    currentLevel = savedLevel;
+    inicializarApp();
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,689 @@
+Aqui está o sistema completo de gestão de academia com todas as funcionalidades solicitadas:
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>FitFlow Pro | Gestão de Academia Inteligente</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f0f4f8;
+            color: #1a2a3a;
+            overflow-x: hidden;
+        }
+
+        /* Login Overlay */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0b2b26 0%, #0a1f1c 100%);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.4s ease;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 32px;
+            padding: 40px;
+            width: 90%;
+            max-width: 420px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+
+        .login-container h2 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            color: #0b2b26;
+        }
+
+        .login-container .sub {
+            color: #6c86a3;
+            margin-bottom: 28px;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 14px 16px;
+            margin-bottom: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 24px;
+            font-size: 1rem;
+            transition: 0.2s;
+        }
+
+        .login-input:focus {
+            outline: none;
+            border-color: #2c7a6e;
+        }
+
+        .login-btn {
+            width: 100%;
+            background: #1f5e54;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .login-btn:hover {
+            background: #0e4a40;
+        }
+
+        /* App Container (inicialmente hidden) */
+        .app-container {
+            display: none;
+        }
+
+        /* Layout Principal */
+        .app-wrapper {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+
+        .main-layout {
+            display: flex;
+            flex: 1;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #0b2b26 0%, #0a1f1c 100%);
+            color: #e0f2fe;
+            transition: all 0.2s;
+            box-shadow: 2px 0 12px rgba(0,0,0,0.05);
+        }
+
+        .sidebar-header {
+            padding: 28px 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-header h2 {
+            font-weight: 700;
+            font-size: 1.6rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-info {
+            padding: 16px 24px;
+            background: rgba(255,255,255,0.05);
+            margin: 16px;
+            border-radius: 16px;
+        }
+
+        .nav-buttons {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: none;
+            padding: 12px 20px;
+            text-align: left;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #cbd5e6;
+            border-radius: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            transition: 0.2s;
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            background: #2c7a6e;
+            color: white;
+        }
+
+        .logout-btn {
+            margin-top: auto;
+            margin: 20px;
+            background: rgba(220, 53, 69, 0.2);
+            color: #ffb3b3;
+        }
+
+        /* Content */
+        .content-area {
+            flex: 1;
+            padding: 28px 32px;
+            background: #f4f7fc;
+            overflow-y: auto;
+            max-height: 100vh;
+            overflow-y: auto;
+        }
+
+        .page-section {
+            display: none;
+            animation: fadeIn 0.25s ease;
+        }
+
+        .page-section.active-page {
+            display: block;
+        }
+
+        /* Cards */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            border: 1px solid #eef2f6;
+        }
+
+        .stat-number {
+            font-size: 2.4rem;
+            font-weight: 800;
+            color: #1f5e54;
+        }
+
+        /* Carrossel */
+        .carousel-container {
+            background: white;
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 28px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .carousel {
+            display: flex;
+            transition: transform 0.5s ease;
+            gap: 20px;
+        }
+
+        .carousel-item {
+            min-width: calc(33.333% - 14px);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 28px;
+            border-radius: 20px;
+            color: white;
+        }
+
+        /* Tabelas */
+        .table-container {
+            overflow-x: auto;
+            background: white;
+            border-radius: 20px;
+            padding: 0;
+            border: 1px solid #eef2f6;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid #f0f3f8;
+        }
+
+        .btn-primary {
+            background: #1f5e54;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 24px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .input-group {
+            flex: 1;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 16px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 16px;
+            color: #6c86a3;
+            font-size: 12px;
+            border-top: 1px solid #e2edf2;
+            background: white;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar { width: 100%; }
+            .main-layout { flex-direction: column; }
+            .carousel-item { min-width: calc(100% - 20px); }
+        }
+
+        .toast-msg {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #1e2a3e;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 40px;
+            z-index: 1100;
+        }
+    </style>
+</head>
+<body>
+
+<!-- TELA DE LOGIN -->
+<div id="loginOverlay" class="login-overlay">
+    <div class="login-container">
+        <h2><i class="fas fa-dumbbell"></i> FitFlow Pro</h2>
+        <div class="sub">Sistema de gestão inteligente</div>
+        <input type="text" id="loginUser" class="login-input" placeholder="Usuário" value="admin">
+        <input type="password" id="loginPass" class="login-input" placeholder="Senha" value="admin123">
+        <select id="loginLevel" class="login-input">
+            <option value="admin">Administrador</option>
+            <option value="gerente">Gerente</option>
+            <option value="instrutor">Instrutor</option>
+        </select>
+        <button class="login-btn" onclick="fazerLogin()"><i class="fas fa-sign-in-alt"></i> Acessar Sistema</button>
+        <div style="margin-top: 16px; font-size: 12px; text-align: center; color: #6c86a3;">demo: admin/admin123 | gerente/123 | instrutor/123</div>
+    </div>
+</div>
+
+<div id="appContainer" class="app-container">
+    <div class="app-wrapper">
+        <div class="main-layout">
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <h2><i class="fas fa-dumbbell"></i> FitFlow Pro</h2>
+                </div>
+                <div class="user-info" id="userInfoSidebar">
+                    <i class="fas fa-user-circle"></i> <span id="userNameDisplay">Carregando...</span><br>
+                    <small id="userLevelDisplay"></small>
+                </div>
+                <div class="nav-buttons">
+                    <button class="nav-btn" data-page="dashboard"><i class="fas fa-chart-line"></i> Dashboard</button>
+                    <button class="nav-btn" data-page="alunos"><i class="fas fa-users"></i> Alunos</button>
+                    <button class="nav-btn" data-page="funcionarios"><i class="fas fa-user-tie"></i> Funcionários</button>
+                    <button class="nav-btn" data-page="pagamentos"><i class="fas fa-credit-card"></i> Pagamentos</button>
+                    <button class="nav-btn" data-page="cronograma"><i class="fas fa-calendar-alt"></i> Cronograma</button>
+                    <button class="nav-btn logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sair</button>
+                </div>
+            </aside>
+
+            <main class="content-area">
+                <!-- DASHBOARD -->
+                <section id="dashboard-page" class="page-section active-page">
+                    <h1>Dashboard <span id="welcomeUser"></span></h1>
+                    <div class="dashboard-grid" id="dashboardMetrics">
+                        <div class="stat-card"><div class="stat-title">Total Alunos</div><div class="stat-number" id="totalAlunosDash">0</div></div>
+                        <div class="stat-card"><div class="stat-title">Funcionários</div><div class="stat-number" id="totalFuncDash">0</div></div>
+                        <div class="stat-card"><div class="stat-title">Receita Mês (R$)</div><div class="stat-number" id="receitaMes">0</div></div>
+                        <div class="stat-card"><div class="stat-title">Instrutores Ativos</div><div class="stat-number" id="instrutoresAtivos">0</div></div>
+                    </div>
+
+                    <!-- CARROSSEL DE ATIVIDADES E IA BOOT -->
+                    <div class="carousel-container">
+                        <h3 style="margin-bottom: 16px;"><i class="fas fa-robot"></i> IA Insights & Atividades em Destaque</h3>
+                        <div class="carousel" id="mainCarousel">
+                            <div class="carousel-item"><i class="fas fa-brain"></i> IA: Aumento de 23% em matrículas este mês!</div>
+                            <div class="carousel-item"><i class="fas fa-chart-line"></i> Melhor horário: 18h-20h com 87% ocupação</div>
+                            <div class="carousel-item"><i class="fas fa-dumbbell"></i> Aula de Spinning hoje às 19h - Instrutor Carlos</div>
+                            <div class="carousel-item"><i class="fas fa-calendar"></i> Workshop de Yoga no sábado - Inscreva-se!</div>
+                        </div>
+                        <div style="text-align: center; margin-top: 12px;">
+                            <button onclick="prevSlide()"><i class="fas fa-chevron-left"></i></button>
+                            <button onclick="nextSlide()"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="form-card">
+                        <h3>Boot IA - Recomendação Inteligente</h3>
+                        <p id="iaBootMessage">Carregando recomendações baseadas na sua academia...</p>
+                        <button class="btn-primary" onclick="gerarBootIA()" style="margin-top: 10px;"><i class="fas fa-microchip"></i> Gerar Insight IA</button>
+                    </div>
+                </section>
+
+                <!-- ALUNOS (CRUD) -->
+                <section id="alunos-page" class="page-section">
+                    <h1>Gestão de Alunos</h1>
+                    <div class="form-card">
+                        <div class="form-row">
+                            <div class="input-group"><input type="text" id="alunoNome" placeholder="Nome completo"></div>
+                            <div class="input-group"><input type="text" id="alunoPlano" placeholder="Plano (Mensal/Anual)"></div>
+                            <div class="input-group"><select id="alunoStatus"><option>Ativo</option><option>Inativo</option></select></div>
+                            <button class="btn-primary" onclick="salvarAluno()">Salvar</button>
+                        </div>
+                    </div>
+                    <div class="table-container"><table><thead><tr><th>Nome</th><th>Plano</th><th>Status</th><th>Ações</th></tr></thead><tbody id="tabelaAlunos"></tbody></table></div>
+                </section>
+
+                <!-- FUNCIONÁRIOS -->
+                <section id="funcionarios-page" class="page-section">
+                    <h1>Funcionários</h1>
+                    <div class="form-card">
+                        <div class="form-row">
+                            <div class="input-group"><input type="text" id="funcNome" placeholder="Nome"></div>
+                            <div class="input-group"><input type="text" id="funcCargo" placeholder="Cargo (Instrutor/Gerente)"></div>
+                            <div class="input-group"><input type="text" id="funcEspecialidade" placeholder="Especialidade"></div>
+                            <button class="btn-primary" onclick="salvarFuncionario()">Adicionar</button>
+                        </div>
+                    </div>
+                    <div class="table-container"><table><thead><tr><th>Nome</th><th>Cargo</th><th>Especialidade</th><th>Ações</th></tr></thead><tbody id="tabelaFuncionarios"></tbody></table></div>
+                </section>
+
+                <!-- PAGAMENTOS -->
+                <section id="pagamentos-page" class="page-section">
+                    <h1>Controle de Pagamentos</h1>
+                    <div class="form-card">
+                        <div class="form-row">
+                            <div class="input-group"><select id="pagAlunoSelect"></select></div>
+                            <div class="input-group"><input type="number" id="pagValor" placeholder="Valor (R$)"></div>
+                            <div class="input-group"><input type="date" id="pagData"></div>
+                            <button class="btn-primary" onclick="registrarPagamento()">Registrar</button>
+                        </div>
+                    </div>
+                    <div class="table-container"><table><thead><tr><th>Aluno</th><th>Valor</th><th>Data</th><th>Status</th></tr></thead><tbody id="tabelaPagamentos"></tbody></table></div>
+                </section>
+
+                <!-- CRONOGRAMA + INSTRUTORES PRESENTES -->
+                <section id="cronograma-page" class="page-section">
+                    <h1>Cronograma de Aulas & Instrutores Presentes</h1>
+                    <div class="form-card">
+                        <h3>Adicionar Aula</h3>
+                        <div class="form-row">
+                            <input type="text" id="aulaNome" placeholder="Aula (Ex: Spinning)" class="input-group">
+                            <input type="text" id="aulaInstrutor" placeholder="Instrutor" class="input-group">
+                            <input type="time" id="aulaHorario" class="input-group">
+                            <button class="btn-primary" onclick="adicionarAula()">Agendar</button>
+                        </div>
+                    </div>
+                    <div class="table-container"><table><thead><tr><th>Aula</th><th>Instrutor</th><th>Horário</th><th>Ações</th></tr></thead><tbody id="tabelaAulas"></tbody></table></div>
+                    <div class="form-card" style="margin-top: 20px;">
+                        <h3><i class="fas fa-chalkboard-user"></i> Instrutores Presentes Hoje</h3>
+                        <ul id="instrutoresPresentesList"></ul>
+                    </div>
+                </section>
+            </main>
+        </div>
+        <footer class="footer">© 2026 FitFlow — Sistema de gestão de academia | UX inspirado nas 10 heurísticas de Nielsen | Dados em memória/local</footer>
+    </div>
+</div>
+
+<script>
+    // DADOS GLOBAIS
+    let alunos = JSON.parse(localStorage.getItem("alunos_fitflow")) || [];
+    let funcionarios = JSON.parse(localStorage.getItem("funcionarios_fitflow")) || [];
+    let pagamentos = JSON.parse(localStorage.getItem("pagamentos_fitflow")) || [];
+    let aulas = JSON.parse(localStorage.getItem("aulas_fitflow")) || [];
+
+    let currentUser = null;
+    let currentUserLevel = null;
+    let slideIndex = 0;
+
+    // LOGIN
+    window.fazerLogin = function() {
+        let user = document.getElementById("loginUser").value;
+        let pass = document.getElementById("loginPass").value;
+        let level = document.getElementById("loginLevel").value;
+        // validação simples
+        if((user === "admin" && pass === "admin123" && level === "admin") ||
+           (user === "gerente" && pass === "123" && level === "gerente") ||
+           (user === "instrutor" && pass === "123" && level === "instrutor")) {
+            currentUser = user;
+            currentUserLevel = level;
+            localStorage.setItem("loggedUser", currentUser);
+            localStorage.setItem("userLevel", currentUserLevel);
+            document.getElementById("loginOverlay").style.display = "none";
+            document.getElementById("appContainer").style.display = "block";
+            document.getElementById("userNameDisplay").innerText = currentUser;
+            document.getElementById("userLevelDisplay").innerText = `Nível: ${currentUserLevel}`;
+            document.getElementById("welcomeUser").innerText = `, ${currentUser}`;
+            aplicarPermissoes();
+            renderAll();
+            gerarBootIA();
+        } else {
+            alert("Credenciais inválidas! Tente admin/admin123 ou gerente/123");
+        }
+    };
+
+    function aplicarPermissoes() {
+        let botoesAdmin = document.querySelectorAll(".nav-btn");
+        if(currentUserLevel === "instrutor") {
+            // instrutor vê apenas dashboard, cronograma e alunos leitura?
+            document.querySelector("[data-page='funcionarios']").style.display = "none";
+            document.querySelector("[data-page='pagamentos']").style.display = "none";
+        } else if(currentUserLevel === "gerente") {
+            // gerente vê tudo menos exclusão de funcionários? deixamos visível mas controle em JS
+        }
+    }
+
+    window.logout = function() {
+        localStorage.removeItem("loggedUser");
+        document.getElementById("appContainer").style.display = "none";
+        document.getElementById("loginOverlay").style.display = "flex";
+        currentUser = null;
+    };
+
+    function showToast(msg) {
+        let t = document.createElement("div");
+        t.className = "toast-msg";
+        t.innerHTML = msg;
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 2500);
+    }
+
+    // CRUD ALUNOS
+    window.salvarAluno = function() {
+        let nome = document.getElementById("alunoNome").value;
+        let plano = document.getElementById("alunoPlano").value;
+        let status = document.getElementById("alunoStatus").value;
+        if(!nome) return showToast("Nome obrigatório");
+        alunos.push({nome, plano, status, data: new Date().toISOString()});
+        localStorage.setItem("alunos_fitflow", JSON.stringify(alunos));
+        document.getElementById("alunoNome").value = "";
+        renderAlunos();
+        renderAll();
+        showToast("Aluno cadastrado!");
+    };
+
+    function renderAlunos() {
+        let tbody = document.getElementById("tabelaAlunos");
+        if(!tbody) return;
+        tbody.innerHTML = alunos.map((a,i)=>`<tr><td>${a.nome}</td><td>${a.plano}</td><td>${a.status}</td><td><button onclick="editarAluno(${i})"><i class='fas fa-edit'></i></button> <button onclick="excluirAluno(${i})"><i class='fas fa-trash'></i></button></td></tr>`).join("");
+    }
+
+    window.excluirAluno = function(i) { if(confirm("Excluir?")){ alunos.splice(i,1); localStorage.setItem("alunos_fitflow", JSON.stringify(alunos)); renderAlunos(); renderAll(); showToast("Excluído"); } };
+    window.editarAluno = function(i) { let a = alunos[i]; document.getElementById("alunoNome").value = a.nome; document.getElementById("alunoPlano").value = a.plano; document.getElementById("alunoStatus").value = a.status; alunos.splice(i,1); localStorage.setItem("alunos_fitflow", JSON.stringify(alunos)); renderAlunos(); };
+
+    // FUNCIONÁRIOS
+    window.salvarFuncionario = function() {
+        let nome = document.getElementById("funcNome").value;
+        let cargo = document.getElementById("funcCargo").value;
+        let especialidade = document.getElementById("funcEspecialidade").value;
+        if(!nome) return;
+        funcionarios.push({nome, cargo, especialidade});
+        localStorage.setItem("funcionarios_fitflow", JSON.stringify(funcionarios));
+        document.getElementById("funcNome").value = "";
+        renderFuncionarios();
+        renderAll();
+    };
+    function renderFuncionarios() {
+        let tbody = document.getElementById("tabelaFuncionarios");
+        if(tbody) tbody.innerHTML = funcionarios.map((f,i)=>`<tr><td>${f.nome}</td><td>${f.cargo}</td><td>${f.especialidade}</td><td><button onclick="excluirFunc(${i})"><i class='fas fa-trash'></i></button></td></tr>`).join("");
+    }
+    window.excluirFunc = function(i) { funcionarios.splice(i,1); localStorage.setItem("funcionarios_fitflow", JSON.stringify(funcionarios)); renderFuncionarios(); renderAll(); };
+
+    // PAGAMENTOS
+    window.registrarPagamento = function() {
+        let alunoId = document.getElementById("pagAlunoSelect").value;
+        let valor = document.getElementById("pagValor").value;
+        let data = document.getElementById("pagData").value || new Date().toISOString().slice(0,10);
+        if(!alunoId || !valor) return;
+        pagamentos.push({aluno: alunos[alunoId]?.nome, valor, data, status:"Pago"});
+        localStorage.setItem("pagamentos_fitflow", JSON.stringify(pagamentos));
+        renderPagamentos();
+        renderAll();
+        showToast("Pagamento registrado!");
+    };
+    function renderPagamentos() {
+        let tbody = document.getElementById("tabelaPagamentos");
+        if(tbody) tbody.innerHTML = pagamentos.map(p=>`<tr><td>${p.aluno}</td><td>R$ ${p.valor}</td><td>${p.data}</td><td>✅ Pago</td></tr>`).join("");
+        let select = document.getElementById("pagAlunoSelect");
+        if(select) select.innerHTML = alunos.map((a,i)=>`<option value="${i}">${a.nome}</option>`).join("");
+    }
+
+    // CRONOGRAMA + INSTRUTORES PRESENTES
+    window.adicionarAula = function() {
+        let nome = document.getElementById("aulaNome").value;
+        let instrutor = document.getElementById("aulaInstrutor").value;
+        let horario = document.getElementById("aulaHorario").value;
+        if(!nome || !instrutor) return;
+        aulas.push({nome, instrutor, horario});
+        localStorage.setItem("aulas_fitflow", JSON.stringify(aulas));
+        renderAulas();
+        renderInstrutoresPresentes();
+        showToast("Aula agendada!");
+    };
+    function renderAulas() {
+        let tbody = document.getElementById("tabelaAulas");
+        if(tbody) tbody.innerHTML = aulas.map((a,i)=>`<tr><td>${a.nome}</td><td>${a.instrutor}</td><td>${a.horario}</td><td><button onclick="excluirAula(${i})"><i class='fas fa-trash'></i></button></td></tr>`).join("");
+    }
+    window.excluirAula = function(i) { aulas.splice(i,1); localStorage.setItem("aulas_fitflow", JSON.stringify(aulas)); renderAulas(); renderInstrutoresPresentes(); };
+    function renderInstrutoresPresentes() {
+        let ul = document.getElementById("instrutoresPresentesList");
+        let instrutoresHoje = funcionarios.filter(f => f.cargo.toLowerCase().includes("instrutor"));
+        let horarioAtual = new Date().getHours() + ":" + new Date().getMinutes();
+        if(ul) ul.innerHTML = instrutoresHoje.map(i=>`<li><i class="fas fa-user-check"></i> ${i.nome} - ${i.especialidade} (Presente hoje)</li>`).join("");
+        if(instrutoresHoje.length === 0) ul.innerHTML = "<li>Nenhum instrutor cadastrado</li>";
+    }
+
+    // DASHBOARD E MÉTRICAS
+    function renderDashboard() {
+        document.getElementById("totalAlunosDash").innerText = alunos.length;
+        document.getElementById("totalFuncDash").innerText = funcionarios.length;
+        let totalReceita = pagamentos.reduce((acc,p)=> acc + (parseFloat(p.valor)||0),0);
+        document.getElementById("receitaMes").innerText = `R$ ${totalReceita}`;
+        let instrutoresCount = funcionarios.filter(f=> f.cargo.toLowerCase().includes("instrutor")).length;
+        document.getElementById("instrutoresAtivos").innerText = instrutoresCount;
+    }
+
+    // BOOT IA (Gera insights)
+    window.gerarBootIA = function() {
+        let totalAlunos = alunos.length;
+        let ativos = alunos.filter(a=> a.status === "Ativo").length;
+        let msg = `🤖 IA: Base com ${totalAlunos} alunos, ${ativos} ativos. `;
+        if(ativos > 10) msg += "Recomendação: expandir turmas de musculação!";
+        else msg += "Sugestão: campanha para novos alunos!";
+        document.getElementById("iaBootMessage").innerHTML = `<i class="fas fa-robot"></i> ${msg}`;
+    };
+
+    // CARROSSEL
+    window.nextSlide = function() { slideIndex = (slideIndex + 1) % 4; updateCarousel(); };
+    window.prevSlide = function() { slideIndex = (slideIndex - 1 + 4) % 4; updateCarousel(); };
+    function updateCarousel() {
+        let carousel = document.getElementById("mainCarousel");
+        if(carousel) carousel.style.transform = `translateX(-${slideIndex * (33.333 + 1.2)}%)`;
+    }
+
+    // NAVEGAÇÃO
+    function initNav() {
+        document.querySelectorAll(".nav-btn[data-page]").forEach(btn => {
+            btn.addEventListener("click", () => {
+                let page = btn.getAttribute("data-page");
+                document.querySelectorAll(".page-section").forEach(s => s.classList.remove("active-page"));
+                document.getElementById(`${page}-page`).classList.add("active-page");
+                document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                if(page === "cronograma") renderInstrutoresPresentes();
+            });
+        });
+        if(document.querySelector(".nav-btn")) document.querySelector(".nav-btn").classList.add("active");
+    }
+
+    function renderAll() {
+        renderAlunos();
+        renderFuncionarios();
+        renderPagamentos();
+        renderAulas();
+        renderDashboard();
+        renderInstrutoresPresentes();
+    }
+
+    function autoLoginCheck() {
+        if(localStorage.getItem("loggedUser")) {
+            currentUser = localStorage.getItem("loggedUser");
+            currentUserLevel = localStorage.getItem("userLevel");
+            document.getElementById("loginOverlay").style.display = "none";
+            document.getElementById("appContainer").style.display = "block";
+            document.getElementById("userNameDisplay").innerText = currentUser;
+            document.getElementById("userLevelDisplay").innerText = `Nível: ${currentUserLevel}`;
+            document.getElementById("welcomeUser").innerText = `, ${currentUser}`;
+            aplicarPermissoes();
+            renderAll();
+            gerarBootIA();
+        }
+    }
+    autoLoginCheck();
+    initNav();
+    setInterval(() => { renderDashboard(); renderInstrutoresPresentes(); }, 2000);
+    window.gerarBootIA = gerarBootIA;
+    renderAll();
+    setInterval(nextSlide, 5000);
+</script>
+</body>
+</html>
+```

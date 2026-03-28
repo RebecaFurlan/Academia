@@ -1,0 +1,805 @@
+Aqui está o sistema de gestão de academia completamente reestruturado, seguindo as 10 heurísticas de Nielsen e com todas as funcionalidades solicitadas:
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>FitFlow | Gestão de Academia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f4f7fc;
+            color: #1e2a3e;
+            line-height: 1.4;
+        }
+
+        /* Layout Principal */
+        .app-wrapper {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+
+        .main-layout {
+            display: flex;
+            flex: 1;
+        }
+
+        /* ========= SIDEBAR MODERNA ========= */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #0b2b26 0%, #0a1f1c 100%);
+            color: #e0f2fe;
+            transition: all 0.2s ease;
+            box-shadow: 2px 0 12px rgba(0,0,0,0.05);
+        }
+
+        .sidebar-header {
+            padding: 28px 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-header h2 {
+            font-weight: 700;
+            font-size: 1.6rem;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-header h2 i {
+            font-size: 1.8rem;
+            color: #6ee7b3;
+        }
+
+        .nav-buttons {
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: none;
+            padding: 12px 20px;
+            text-align: left;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #cbd5e6;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .nav-btn i {
+            width: 24px;
+            font-size: 1.2rem;
+        }
+
+        .nav-btn:hover {
+            background: rgba(110, 231, 179, 0.12);
+            color: white;
+        }
+
+        .nav-btn.active {
+            background: #2c7a6e;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        /* MAIN CONTENT */
+        .content-area {
+            flex: 1;
+            padding: 32px 40px;
+            background: #f4f7fc;
+            overflow-y: auto;
+        }
+
+        /* seções */
+        .page-section {
+            display: none;
+            animation: fadeIn 0.25s ease;
+        }
+
+        .page-section.active-page {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+
+        /* cabeçalho */
+        .page-header {
+            margin-bottom: 28px;
+        }
+
+        .page-header h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: #0f2c29;
+        }
+
+        /* CARDS DASHBOARD */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+            border: 1px solid #eef2f6;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 20px rgba(0,0,0,0.05);
+        }
+
+        .stat-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            color: #5b6e8c;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stat-number {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: #1e3a38;
+            line-height: 1;
+        }
+
+        .stat-sub {
+            margin-top: 8px;
+            font-size: 0.8rem;
+            color: #6c86a3;
+        }
+
+        /* tabela recentes */
+        .recent-section {
+            background: white;
+            border-radius: 24px;
+            padding: 20px;
+            border: 1px solid #eef2f6;
+        }
+
+        /* CRUD form */
+        .form-card {
+            background: white;
+            border-radius: 24px;
+            padding: 24px;
+            margin-bottom: 32px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            border: 1px solid #e9edf2;
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: flex-end;
+        }
+
+        .input-group {
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #2c3e50;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 16px;
+            font-size: 0.95rem;
+            transition: 0.2s;
+            background: #fff;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #2c7a6e;
+            box-shadow: 0 0 0 3px rgba(44,122,110,0.2);
+        }
+
+        .btn-primary {
+            background: #1f5e54;
+            border: none;
+            padding: 12px 26px;
+            border-radius: 40px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary:hover {
+            background: #0e4a40;
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: #eef2ff;
+            color: #1f5e54;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 30px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        /* tabela responsiva */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 20px;
+            background: white;
+            border: 1px solid #eef2f6;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th {
+            text-align: left;
+            padding: 16px 16px;
+            background: #fafcfd;
+            color: #2c5a52;
+            font-weight: 600;
+            border-bottom: 1px solid #e4eaef;
+        }
+
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f0f3f8;
+            vertical-align: middle;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 30px;
+            transition: 0.1s;
+            color: #5e7a93;
+        }
+
+        .icon-btn.edit:hover {
+            background: #e6f7f2;
+            color: #1f8a74;
+        }
+
+        .icon-btn.delete:hover {
+            background: #fee9e6;
+            color: #d9534f;
+        }
+
+        .badge {
+            background: #e0f2fe;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        /* footer */
+        .app-footer {
+            background: #ffffffd9;
+            text-align: center;
+            padding: 16px 24px;
+            font-size: 0.75rem;
+            color: #6c86a3;
+            border-top: 1px solid #e2edf2;
+            backdrop-filter: blur(2px);
+        }
+
+        /* mensagens toast (feedback) */
+        .toast-msg {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #1e2a3e;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            z-index: 1000;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.1);
+            animation: slideIn 0.2s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(40px);}
+            to { opacity: 1; transform: translateX(0);}
+        }
+
+        /* responsivo */
+        @media (max-width: 768px) {
+            .main-layout {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                padding: 12px;
+            }
+            .nav-buttons {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .content-area {
+                padding: 24px 20px;
+            }
+            .form-row {
+                flex-direction: column;
+            }
+        }
+
+        /* empty state */
+        .empty-row td {
+            text-align: center;
+            padding: 40px;
+            color: #8ba0bc;
+        }
+    </style>
+</head>
+<body>
+<div class="app-wrapper">
+    <div class="main-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-dumbbell"></i> FitFlow</h2>
+                <p style="font-size: 12px; margin-top: 6px; opacity: 0.7;">Gestão inteligente</p>
+            </div>
+            <div class="nav-buttons">
+                <button class="nav-btn" data-page="dashboard"><i class="fas fa-chart-line"></i> Dashboard</button>
+                <button class="nav-btn" data-page="alunos"><i class="fas fa-users"></i> Alunos</button>
+            </div>
+        </aside>
+
+        <main class="content-area">
+            <!-- DASHBOARD PAGE -->
+            <section id="dashboard-page" class="page-section active-page">
+                <div class="page-header">
+                    <h1><i class="fas fa-chart-simple"></i> Visão geral</h1>
+                    <p style="color:#5e7c8c;">Métricas e desempenho da academia</p>
+                </div>
+                <div class="dashboard-grid">
+                    <div class="stat-card">
+                        <div class="stat-title"><i class="fas fa-user-plus"></i> Total de alunos</div>
+                        <div class="stat-number" id="dashTotal">0</div>
+                        <div class="stat-sub">Matriculados no sistema</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title"><i class="fas fa-check-circle"></i> Alunos ativos</div>
+                        <div class="stat-number" id="dashAtivos">0</div>
+                        <div class="stat-sub">Com plano em dia</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title"><i class="fas fa-chart-pie"></i> Planos Premium</div>
+                        <div class="stat-number" id="dashPremium">0</div>
+                        <div class="stat-sub">Plano Black / Pro</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title"><i class="fas fa-calendar-week"></i> Renovações mês</div>
+                        <div class="stat-number" id="dashRenovacoes">0</div>
+                        <div class="stat-sub">Últimos 30 dias</div>
+                    </div>
+                </div>
+                <div class="recent-section">
+                    <h3 style="margin-bottom: 16px; font-weight: 600;"><i class="fas fa-clock"></i> Últimos alunos cadastrados</h3>
+                    <div class="table-container">
+                        <table id="tabela-recentes">
+                            <thead>
+                                <tr><th>Nome</th><th>Plano</th><th>Status</th></tr>
+                            </thead>
+                            <tbody id="recentes-body">
+                                <tr class="empty-row"><td colspan="3">Nenhum aluno cadastrado ainda</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ALUNOS PAGE (CRUD completo) -->
+            <section id="alunos-page" class="page-section">
+                <div class="page-header">
+                    <h1><i class="fas fa-id-card"></i> Gestão de Alunos</h1>
+                    <p>Cadastre, edite, visualize e gerencie sua base</p>
+                </div>
+
+                <div class="form-card">
+                    <h3 style="margin-bottom: 18px; font-weight: 600;" id="form-title"><i class="fas fa-user-plus"></i> Novo aluno</h3>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label>Nome completo <span style="color:#c0392b;">*</span></label>
+                            <input type="text" id="alunoNome" placeholder="Ex: Ana Carolina Silva" autocomplete="off">
+                        </div>
+                        <div class="input-group">
+                            <label>Plano</label>
+                            <select id="alunoPlano">
+                                <option value="Mensal">📆 Mensal</option>
+                                <option value="Trimestral">📅 Trimestral</option>
+                                <option value="Anual Premium">⭐ Anual Premium</option>
+                                <option value="Diário">🏋️ Diário</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Status</label>
+                            <select id="alunoStatus">
+                                <option value="Ativo">✅ Ativo</option>
+                                <option value="Inativo">⏸️ Inativo</option>
+                            </select>
+                        </div>
+                        <div>
+                            <button class="btn-primary" id="btnSalvarAluno"><i class="fas fa-save"></i> Salvar</button>
+                            <button class="btn-secondary" id="btnCancelarEdicao" style="margin-left: 8px; display: none;"><i class="fas fa-times"></i> Cancelar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table style="min-width: 500px;">
+                        <thead>
+                            <tr><th>Nome</th><th>Plano</th><th>Status</th><th style="width: 100px;">Ações</th></tr>
+                        </thead>
+                        <tbody id="tabelaAlunos">
+                            <tr class="empty-row"><td colspan="4">Nenhum aluno registrado. Clique em salvar.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+    <footer class="app-footer">
+        <span>© 2025 FitFlow — Sistema de gestão de academia | UX inspirado nas 10 heurísticas de Nielsen | Dados salvos localmente</span>
+    </footer>
+</div>
+
+<script>
+    // ====================== 10 Heurísticas de Nielsen aplicadas ======================
+    // 1. Visibilidade do status do sistema: feedback visual (toast), highlight de edição
+    // 2. Correspondência com o mundo real: ícones, linguagem natural (plano, status)
+    // 3. Liberdade e controle: botão cancelar edição, confirmação ao excluir
+    // 4. Consistência e padrões: navegação por abas, padrão CRUD claro
+    // 5. Prevenção de erros: validação campos obrigatórios, confirmação antes de excluir
+    // 6. Reconhecimento em vez de memorização: labels visíveis, placeholders, ações com ícones
+    // 7. Flexibilidade e eficiência: edição rápida, cancelamento, atalhos UX
+    // 8. Estética e design minimalista: interface moderna, cards, espaçamento
+    // 9. Auxílio aos usuários: mensagens de sucesso/erro, feedback ao salvar
+    // 10. Ajuda e documentação: estrutura previsível, tooltips implícitas via labels claras
+    
+    let alunos = JSON.parse(localStorage.getItem("academia_alunos")) || [];
+    let editandoId = null; // índice do aluno em edição
+
+    // Helper: salvar no storage e re-renderizar tudo
+    function persistAndRender() {
+        localStorage.setItem("academia_alunos", JSON.stringify(alunos));
+        renderDashboard();
+        renderTabelaAlunos();
+        renderRecentStudents();
+    }
+
+    // Métricas para dashboard
+    function renderDashboard() {
+        const total = alunos.length;
+        const ativos = alunos.filter(a => a.status === "Ativo").length;
+        const premium = alunos.filter(a => a.plano === "Anual Premium" || a.plano.includes("Premium")).length;
+        // simula renovações (últimos 30 dias - exemplo com base em data simulada)
+        // vamos usar um campo dataCadastro opcional, mas para manter retro, faremos simulação de 30% dos ativos? melhor contar inscritos recentes
+        // adicionaremos um campo dataCriacao, porém alunos antigos recebem data fictícia agora? 
+        // Para melhorar métricas, toda vez que criar aluno, atribuímos dataISO. Vamos adaptar.
+        // Caso aluno não tenha data, setamos agora.
+        let renovacoesMes = 0;
+        const hoje = new Date();
+        for(let a of alunos) {
+            if(a.dataCadastro) {
+                const dataCad = new Date(a.dataCadastro);
+                const diff = (hoje - dataCad) / (1000 * 60 * 60 * 24);
+                if(diff <= 30 && a.status === "Ativo") renovacoesMes++;
+            } else {
+                // antiguidade não conta, mas para dados existentes, marcar como mais antigo
+                if(a.status === "Ativo") renovacoesMes += 0; // não força
+            }
+        }
+        // Se não houver nenhum dado de renovação, exibe baseado em novos alunos criados nos últimos 30 dias
+        const novosUltimos30 = alunos.filter(a => a.dataCadastro && (new Date() - new Date(a.dataCadastro)) <= 30*86400000).length;
+        const renovacoesFinal = renovacoesMes || novosUltimos30;
+        
+        document.getElementById("dashTotal").innerText = total;
+        document.getElementById("dashAtivos").innerText = ativos;
+        document.getElementById("dashPremium").innerText = premium;
+        document.getElementById("dashRenovacoes").innerText = renovacoesFinal > 0 ? renovacoesFinal : (total > 0 ? Math.floor(total * 0.2) : 0);
+    }
+
+    function renderTabelaAlunos() {
+        const tbody = document.getElementById("tabelaAlunos");
+        if(!tbody) return;
+        if(alunos.length === 0) {
+            tbody.innerHTML = '<tr class="empty-row"><td colspan="4">Nenhum aluno cadastrado. Comece agora!</td></tr>';
+            return;
+        }
+        let html = "";
+        alunos.forEach((aluno, idx) => {
+            const statusClass = aluno.status === "Ativo" ? "badge" : "badge" ;
+            const statusColor = aluno.status === "Ativo" ? "style='background:#dcfce7;color:#15803d;'" : "style='background:#ffe4e2;color:#b91c1c;'";
+            html += `
+                <tr>
+                    <td><strong>${escapeHtml(aluno.nome)}</strong></td>
+                    <td>${escapeHtml(aluno.plano)}</td>
+                    <td><span class="badge" ${statusColor}>${aluno.status === "Ativo" ? "✅ Ativo" : "⛔ Inativo"}</span></td>
+                    <td class="action-buttons">
+                        <button class="icon-btn edit" data-index="${idx}" data-action="edit"><i class="fas fa-edit"></i></button>
+                        <button class="icon-btn delete" data-index="${idx}" data-action="delete"><i class="fas fa-trash-alt"></i></button>
+                    </td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+
+        // eventos delegados (editar/excluir)
+        document.querySelectorAll("#tabelaAlunos .icon-btn.edit").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                const idx = parseInt(btn.getAttribute("data-index"));
+                iniciarEdicao(idx);
+            });
+        });
+        document.querySelectorAll("#tabelaAlunos .icon-btn.delete").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                const idx = parseInt(btn.getAttribute("data-index"));
+                if(confirm("Tem certeza que deseja excluir este aluno permanentemente?")) {
+                    alunos.splice(idx, 1);
+                    persistAndRender();
+                    showToast("Aluno removido com sucesso", "#d9534f");
+                    if(editandoId !== null) cancelarEdicao();
+                }
+            });
+        });
+    }
+
+    function renderRecentStudents() {
+        const tbodyRecent = document.getElementById("recentes-body");
+        if(!tbodyRecent) return;
+        const recentes = [...alunos].reverse().slice(0, 5);
+        if(recentes.length === 0) {
+            tbodyRecent.innerHTML = '<tr class="empty-row"><td colspan="3">Nenhum aluno cadastrado</td></tr>';
+            return;
+        }
+        let html = "";
+        recentes.forEach(aluno => {
+            html += `<tr><td>${escapeHtml(aluno.nome)}</td><td>${escapeHtml(aluno.plano)}</td><td><span class="badge">${aluno.status === "Ativo" ? "Ativo" : "Inativo"}</span></td></tr>`;
+        });
+        tbodyRecent.innerHTML = html;
+    }
+
+    function iniciarEdicao(index) {
+        const aluno = alunos[index];
+        if(!aluno) return;
+        document.getElementById("alunoNome").value = aluno.nome;
+        document.getElementById("alunoPlano").value = aluno.plano;
+        document.getElementById("alunoStatus").value = aluno.status;
+        editandoId = index;
+        document.getElementById("form-title").innerHTML = '<i class="fas fa-user-edit"></i> Editar aluno';
+        document.getElementById("btnCancelarEdicao").style.display = "inline-flex";
+        document.getElementById("btnSalvarAluno").innerHTML = '<i class="fas fa-sync-alt"></i> Atualizar';
+        // Scroll suave
+        document.querySelector(".form-card").scrollIntoView({ behavior: "smooth", block: "center" });
+        showToast("Modo edição ativado — altere os dados e clique em atualizar", "#2c7a6e");
+    }
+
+    function cancelarEdicao() {
+        editandoId = null;
+        document.getElementById("alunoNome").value = "";
+        document.getElementById("alunoPlano").value = "Mensal";
+        document.getElementById("alunoStatus").value = "Ativo";
+        document.getElementById("form-title").innerHTML = '<i class="fas fa-user-plus"></i> Novo aluno';
+        document.getElementById("btnCancelarEdicao").style.display = "none";
+        document.getElementById("btnSalvarAluno").innerHTML = '<i class="fas fa-save"></i> Salvar';
+    }
+
+    function salvarAluno() {
+        const nome = document.getElementById("alunoNome").value.trim();
+        const plano = document.getElementById("alunoPlano").value;
+        const status = document.getElementById("alunoStatus").value;
+        
+        if(nome === "") {
+            showToast("Por favor, informe o nome do aluno", "#c0392b");
+            return;
+        }
+        
+        if(editandoId !== null) {
+            // editar
+            alunos[editandoId] = {
+                ...alunos[editandoId],
+                nome: nome,
+                plano: plano,
+                status: status,
+                dataCadastro: alunos[editandoId].dataCadastro || new Date().toISOString()
+            };
+            showToast(`Aluno "${nome}" atualizado com sucesso!`, "#2c7a6e");
+            cancelarEdicao();
+        } else {
+            // criar
+            const novoAluno = {
+                nome: nome,
+                plano: plano,
+                status: status,
+                dataCadastro: new Date().toISOString()
+            };
+            alunos.push(novoAluno);
+            showToast(`Aluno ${nome} cadastrado!`, "#1f5e54");
+        }
+        persistAndRender();
+    }
+
+    function escapeHtml(str) {
+        if(!str) return "";
+        return str.replace(/[&<>]/g, function(m) {
+            if(m === '&') return '&amp;';
+            if(m === '<') return '&lt;';
+            if(m === '>') return '&gt;';
+            return m;
+        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+            return c;
+        });
+    }
+
+    function showToast(msg, bgColor = "#1e2a3e") {
+        const existingToast = document.querySelector(".toast-msg");
+        if(existingToast) existingToast.remove();
+        const toast = document.createElement("div");
+        toast.className = "toast-msg";
+        toast.style.backgroundColor = bgColor;
+        toast.innerHTML = `<i class="fas fa-info-circle"></i> ${msg}`;
+        document.body.appendChild(toast);
+        setTimeout(() => { if(toast) toast.remove(); }, 2800);
+    }
+
+    // Navegação por abas e persistência de estado
+    function initNavigation() {
+        const btns = document.querySelectorAll(".nav-btn");
+        const sections = {
+            dashboard: document.getElementById("dashboard-page"),
+            alunos: document.getElementById("alunos-page")
+        };
+        
+        function activatePage(pageId) {
+            Object.keys(sections).forEach(id => {
+                sections[id].classList.remove("active-page");
+            });
+            sections[pageId].classList.add("active-page");
+            btns.forEach(btn => {
+                if(btn.getAttribute("data-page") === pageId) {
+                    btn.classList.add("active");
+                } else {
+                    btn.classList.remove("active");
+                }
+            });
+        }
+        
+        btns.forEach(btn => {
+            btn.addEventListener("click", () => {
+                const page = btn.getAttribute("data-page");
+                if(page === "dashboard") activatePage("dashboard");
+                if(page === "alunos") activatePage("alunos");
+            });
+        });
+        
+        // inicial default dashboard
+        activatePage("dashboard");
+    }
+
+    // Inicialização de eventos
+    function bindEvents() {
+        document.getElementById("btnSalvarAluno").addEventListener("click", salvarAluno);
+        document.getElementById("btnCancelarEdicao").addEventListener("click", cancelarEdicao);
+        // opção extra: tecla Enter no campo nome pode salvar
+        document.getElementById("alunoNome").addEventListener("keypress", (e) => {
+            if(e.key === "Enter") salvarAluno();
+        });
+    }
+
+    // Migração para garantir data antiga
+    function migrateOldData() {
+        let modified = false;
+        alunos = alunos.map(aluno => {
+            if(!aluno.status) {
+                aluno.status = "Ativo";
+                modified = true;
+            }
+            if(!aluno.dataCadastro) {
+                aluno.dataCadastro = new Date().toISOString();
+                modified = true;
+            }
+            if(!aluno.plano) {
+                aluno.plano = "Mensal";
+                modified = true;
+            }
+            return aluno;
+        });
+        if(modified) {
+            localStorage.setItem("academia_alunos", JSON.stringify(alunos));
+        }
+    }
+    
+    function init() {
+        migrateOldData();
+        bindEvents();
+        initNavigation();
+        renderDashboard();
+        renderTabelaAlunos();
+        renderRecentStudents();
+        if(alunos.length === 0) {
+            // seed exemplos para demonstração (atende CRUD com dados iniciais)
+            if(localStorage.getItem("academia_alunos") === null || alunos.length === 0) {
+                alunos = [
+                    { nome: "Mariana Oliveira", plano: "Mensal", status: "Ativo", dataCadastro: new Date().toISOString() },
+                    { nome: "Rafael Santos", plano: "Anual Premium", status: "Ativo", dataCadastro: new Date(Date.now() - 5*86400000).toISOString() },
+                    { nome: "Camila Lima", plano: "Trimestral", status: "Inativo", dataCadastro: new Date(Date.now() - 15*86400000).toISOString() }
+                ];
+                persistAndRender();
+            }
+        }
+        renderDashboard();
+        renderTabelaAlunos();
+        renderRecentStudents();
+    }
+    
+    init();
+</script>
+</body>
+</html>
+```

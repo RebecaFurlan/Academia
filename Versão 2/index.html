@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Academia | Gestão</title>
+
+<style>
+:root {
+  --bg: #f5f6f8;
+  --card: #ffffff;
+  --primary: #111;
+  --gray: #777;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
+}
+
+body {
+  background: var(--bg);
+  display: flex;
+}
+
+/* SIDEBAR */
+aside {
+  width: 220px;
+  background: var(--primary);
+  color: white;
+  height: 100vh;
+  padding: 20px;
+}
+
+aside h2 {
+  font-size: 18px;
+  margin-bottom: 30px;
+}
+
+aside button {
+  display: block;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 10px;
+  background: none;
+  color: white;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+aside button:hover {
+  background: #222;
+}
+
+/* MAIN */
+main {
+  flex: 1;
+  padding: 30px;
+}
+
+.section {
+  display: none;
+}
+
+.section.active {
+  display: block;
+}
+
+/* DASHBOARD */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
+  gap: 20px;
+}
+
+.card {
+  background: var(--card);
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.card h3 {
+  font-size: 14px;
+  color: var(--gray);
+}
+
+.card p {
+  font-size: 28px;
+  margin-top: 5px;
+}
+
+/* FORM */
+input {
+  padding: 10px;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+button.primary {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+}
+
+/* TABLE */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background: var(--card);
+}
+
+th, td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+}
+
+.actions button {
+  margin-right: 5px;
+}
+
+/* FOOTER */
+footer {
+  margin-top: 40px;
+  text-align: center;
+  color: var(--gray);
+  font-size: 12px;
+}
+</style>
+</head>
+
+<body>
+
+<aside>
+  <h2>Academia</h2>
+  <button onclick="show('dashboard')">Dashboard</button>
+  <button onclick="show('alunos')">Alunos</button>
+</aside>
+
+<main>
+
+<!-- DASHBOARD -->
+<section id="dashboard" class="section active">
+  <h1>Dashboard</h1>
+  <div class="cards">
+    <div class="card">
+      <h3>Total de Alunos</h3>
+      <p id="totalAlunos">0</p>
+    </div>
+    <div class="card">
+      <h3>Alunos Ativos</h3>
+      <p id="ativos">0</p>
+    </div>
+  </div>
+</section>
+
+<!-- ALUNOS -->
+<section id="alunos" class="section">
+  <h1>Gestão de Alunos</h1>
+
+  <input id="nome" placeholder="Nome do aluno">
+  <input id="plano" placeholder="Plano">
+  <button class="primary" onclick="salvar()">Salvar</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Plano</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody id="tabela"></tbody>
+  </table>
+</section>
+
+<footer>
+  Sistema de Gestão de Academia • HTML | CSS | JS
+</footer>
+
+</main>
+
+<script>
+let alunos = JSON.parse(localStorage.getItem("alunos")) || [];
+let editIndex = null;
+
+function show(id){
+  document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+function salvar(){
+  const nome = document.getElementById("nome").value;
+  const plano = document.getElementById("plano").value;
+  if(!nome || !plano) return;
+
+  if(editIndex === null){
+    alunos.push({nome, plano});
+  } else {
+    alunos[editIndex] = {nome, plano};
+    editIndex = null;
+  }
+
+  localStorage.setItem("alunos", JSON.stringify(alunos));
+  document.getElementById("nome").value = "";
+  document.getElementById("plano").value = "";
+  render();
+}
+
+function editar(i){
+  document.getElementById("nome").value = alunos[i].nome;
+  document.getElementById("plano").value = alunos[i].plano;
+  editIndex = i;
+}
+
+function excluir(i){
+  alunos.splice(i,1);
+  localStorage.setItem("alunos", JSON.stringify(alunos));
+  render();
+}
+
+function render(){
+  const tabela = document.getElementById("tabela");
+  tabela.innerHTML = "";
+  alunos.forEach((a,i)=>{
+    tabela.innerHTML += `
+      <tr>
+        <td>${a.nome}</td>
+        <td>${a.plano}</td>
+        <td class="actions">
+          <button onclick="editar(${i})">✏️</button>
+          <button onclick="excluir(${i})">🗑</button>
+        </td>
+      </tr>`;
+  });
+
+  document.getElementById("totalAlunos").innerText = alunos.length;
+  document.getElementById("ativos").innerText = alunos.length;
+}
+
+render();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>FitFlow Pro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+/* ===== RESET ===== */
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Arial,Helvetica,sans-serif;background:#f4f6f8;color:#222}
+
+/* ===== LOGIN ===== */
+#login{
+  position:fixed;inset:0;
+  background:linear-gradient(135deg, #0f766e, #0d9488);
+  display:flex;align-items:center;justify-content:center;
+  z-index:1000;
+}
+.login-box{
+  background:#fff;padding:30px;border-radius:12px;width:320px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.1);
+}
+.login-box h2{text-align:center;margin-bottom:20px;color:#0f766e}
+.login-box input,select,button{
+  width:100%;padding:10px;margin-bottom:10px;border-radius:8px;border:1px solid #ccc;
+  font-size:14px;
+}
+.login-box button{
+  background:#0f766e;color:#fff;border:none;cursor:pointer;
+  font-weight:bold;margin-top:5px;
+}
+.login-box button:hover{background:#115e59}
+.login-box small{display:block;text-align:center;margin-top:10px;color:#666}
+
+/* ===== APP ===== */
+#app{display:none;min-height:100vh}
+.sidebar{
+  width:250px;background:#0f766e;color:#fff;
+  height:100vh;position:fixed;left:0;top:0;padding:20px;
+  box-shadow:2px 0 5px rgba(0,0,0,0.1);
+}
+.sidebar h3{
+  margin-bottom:30px;
+  padding-bottom:10px;
+  border-bottom:2px solid rgba(255,255,255,0.3);
+  font-size:18px;
+}
+.sidebar button{
+  background:none;color:#fff;border:none;
+  text-align:left;width:100%;padding:12px;
+  border-radius:8px;cursor:pointer;margin-bottom:5px;
+  font-size:14px;transition:all 0.3s;
+}
+.sidebar button:hover,.sidebar button.active{
+  background:#115e59;
+  transform:translateX(5px);
+}
+
+.content{
+  margin-left:250px;padding:20px;
+  min-height:100vh;
+}
+.card{
+  background:#fff;padding:25px;border-radius:12px;
+  margin-bottom:20px;box-shadow:0 2px 5px rgba(0,0,0,0.05);
+}
+.card h2{color:#0f766e;margin-bottom:20px}
+.grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;
+  margin-top:15px;
+}
+.stat{
+  background:linear-gradient(135deg, #ecfeff, #cffafe);
+  border-radius:12px;padding:20px;text-align:center;
+  border:1px solid #a5f3fc;
+}
+.stat p{color:#0f766e;font-size:14px;margin-bottom:10px}
+.stat h2{color:#0f766e;font-size:32px;margin:0}
+
+/* ===== TABELA ===== */
+.table-wrapper{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th,td{padding:12px;text-align:left;border-bottom:1px solid #e2e8f0}
+th{background:#f1f5f9;color:#0f766e;font-weight:bold}
+tr:hover{background:#f8fafc}
+
+/* ===== IA ===== */
+.form-group{margin-bottom:15px}
+.form-group label{display:block;margin-bottom:5px;color:#334155;font-weight:bold}
+select,button{
+  width:100%;padding:12px;border-radius:8px;border:1px solid #cbd5e1;
+  font-size:14px;
+}
+button{
+  background:#0f766e;color:#fff;border:none;cursor:pointer;
+  font-weight:bold;transition:all 0.3s;
+}
+button:hover{background:#115e59;transform:translateY(-2px)}
+ul{padding-left:20px;margin-top:10px}
+ul li{margin:8px 0;color:#334155}
+
+/* ===== TOAST ===== */
+.toast{
+  position:fixed;bottom:20px;right:20px;
+  background:#0f766e;color:#fff;
+  padding:12px 24px;border-radius:8px;
+  z-index:2000;animation:slideIn 0.3s ease;
+  box-shadow:0 2px 10px rgba(0,0,0,0.2);
+}
+@keyframes slideIn{
+  from{transform:translateX(100%);opacity:0}
+  to{transform:translateX(0);opacity:1}
+}
+
+/* ===== RESULTADO ===== */
+#resultado{margin-top:20px}
+#resultado .card{background:#f8fafc;border:1px solid #e2e8f0}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="login-box">
+    <h2>🏋️‍♂️ FitFlow Pro</h2>
+    <input id="user" placeholder="Usuário" autocomplete="off">
+    <input id="pass" type="password" placeholder="Senha">
+    <select id="tipo">
+      <option value="aluno">Aluno</option>
+      <option value="admin">Administrador</option>
+    </select>
+    <button onclick="fazerLogin()">Entrar</button>
+    <small>Admin: admin / 123</small>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="sidebar">
+    <h3>Olá, <span id="nomeUsuario"></span>!</h3>
+    <button class="active" onclick="abrir('dashboard', this)">📊 Dashboard</button>
+    <button onclick="abrir('treinoIA', this)">🤖 IA de Treino</button>
+    <button onclick="abrir('treinos', this)">📋 Meus Treinos</button>
+    <button onclick="logout()">🚪 Sair</button>
+  </div>
+
+  <div class="content">
+    <!-- DASHBOARD -->
+    <div id="dashboard" class="card">
+      <h2>📊 Dashboard</h2>
+      <div class="grid">
+        <div class="stat">
+          <p>Treinos Gerados</p>
+          <h2 id="totalTreinos">0</h2>
+        </div>
+        <div class="stat">
+          <p>Status</p>
+          <h2>✅ Ativo</h2>
+        </div>
+      </div>
+      <div style="margin-top:20px; padding:15px; background:#f1f5f9; border-radius:8px">
+        <p>💪 <strong>Mensagem motivacional:</strong> "O segredo do sucesso é começar antes de estar pronto!"</p>
+      </div>
+    </div>
+
+    <!-- IA TREINO -->
+    <div id="treinoIA" class="card" style="display:none">
+      <h2>🤖 IA de Treino Personalizado</h2>
+      <p style="color:#64748b; margin-bottom:20px">Responda as perguntas abaixo e receba um treino personalizado:</p>
+      
+      <div class="form-group">
+        <label>🎯 Objetivo:</label>
+        <select id="objetivo">
+          <option value="hipertrofia">Hipertrofia (Ganho de massa muscular)</option>
+          <option value="emagrecimento">Emagrecimento (Perda de peso)</option>
+          <option value="condicionamento">Condicionamento (Resistência física)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>📊 Nível de experiência:</label>
+        <select id="nivel">
+          <option value="iniciante">Iniciante (menos de 3 meses)</option>
+          <option value="intermediario">Intermediário (3 meses a 1 ano)</option>
+          <option value="avancado">Avançado (mais de 1 ano)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>📅 Frequência semanal:</label>
+        <select id="freq">
+          <option value="3">3x por semana</option>
+          <option value="4">4x por semana</option>
+          <option value="5">5x por semana</option>
+        </select>
+      </div>
+
+      <button onclick="gerarTreino()">✨ Gerar Treino Personalizado</button>
+
+      <div id="resultado"></div>
+    </div>
+
+    <!-- TREINOS -->
+    <div id="treinos" class="card" style="display:none">
+      <h2>📋 Meus Treinos</h2>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>🏋️ Exercícios</th>
+              <th>📅 Data</th>
+            </tr>
+          </thead>
+          <tbody id="listaTreinos"></tbody>
+        </table>
+      </div>
+      <div id="semTreinos" style="display:none; text-align:center; padding:40px; color:#94a3b8">
+        Nenhum treino gerado ainda. Use a IA de treino para começar!
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// Variáveis globais
+let usuarioAtual = null;
+let treinos = JSON.parse(localStorage.getItem("treinos")) || [];
+
+// ===== TOAST =====
+function toast(msg) {
+  let t = document.createElement("div");
+  t.className = "toast";
+  t.innerText = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2000);
+}
+
+// ===== LOGIN =====
+function fazerLogin() {
+  const u = document.getElementById("user").value;
+  const p = document.getElementById("pass").value;
+  const t = document.getElementById("tipo").value;
+
+  if ((u === "admin" && p === "123") || t === "aluno") {
+    usuarioAtual = u || "Aluno";
+    
+    document.getElementById("login").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    document.getElementById("nomeUsuario").innerText = usuarioAtual;
+    
+    atualizar();
+    toast(`Bem-vindo(a), ${usuarioAtual}!`);
+  } else {
+    alert("❌ Login inválido!\nAdmin: admin / 123\nAluno: qualquer usuário/senha");
+  }
+}
+
+// ===== LOGOUT =====
+function logout() {
+  if(confirm("Tem certeza que deseja sair?")) {
+    location.reload();
+  }
+}
+
+// ===== NAVEGAÇÃO =====
+function abrir(id, elemento) {
+  // Esconde todos os conteúdos
+  document.querySelectorAll(".content .card").forEach(c => {
+    c.style.display = "none";
+  });
+  // Mostra o conteúdo selecionado
+  document.getElementById(id).style.display = "block";
+  
+  // Remove classe active de todos os botões
+  document.querySelectorAll(".sidebar button").forEach(b => {
+    b.classList.remove("active");
+  });
+  // Adiciona classe active ao botão clicado
+  if(elemento) {
+    elemento.classList.add("active");
+  }
+}
+
+// ===== IA DE TREINO =====
+function gerarTreino() {
+  if(!usuarioAtual) return;
+  
+  const obj = document.getElementById("objetivo").value;
+  const n = document.getElementById("nivel").value;
+  const f = document.getElementById("freq").value;
+  
+  // Base de dados de treinos
+  const base = {
+    hipertrofia: {
+      iniciante: ["Supino Reto 3x12", "Agachamento Livre 3x12", "Puxada Frontal 3x12", "Desenvolvimento 3x12", "Rosca Direta 3x12"],
+      intermediario: ["Supino Inclinado 4x10", "Leg Press 4x10", "Remada Curvada 4x10", "Elevação Lateral 4x10", "Tríceps Corda 4x10"],
+      avancado: ["Agachamento Livre 5x8", "Levantamento Terra 5x5", "Supino Reto 5x8", "Barra Fixa 5x8", "Drop-set de Bíceps"]
+    },
+    emagrecimento: {
+      iniciante: ["Caminhada 30min", "Bicicleta 20min", "Prancha 3x30s", "Agachamento 3x15", "Abdominal 3x15"],
+      intermediario: ["HIIT 20min", "Esteira Inclinada 25min", "Burpees 3x12", "Jumping Jack 3x20", "Corrida 15min"],
+      avancado: ["HIIT Avançado 30min", "Crossfit WOD", "Pular Corda 15min", "Corrida 5km", "Circuito Funcional"]
+    },
+    condicionamento: {
+      iniciante: ["Funcional Leve 20min", "Alongamento Dinâmico", "Mobilidade Articular", "Caminhada Rápida", "Respiração Diafragmática"],
+      intermediario: ["Funcional 30min", "Core Forte", "Yoga Flow", "Corrida Intervalada", "Pular Corda"],
+      avancado: ["Pliometria Avançada", "Funcional Intenso 45min", "Cross Training", "Treino de Força Funcional", "Mobilidade Avançada"]
+    }
+  };
+  
+  // Seleciona os exercícios base
+  let treinoExercicios = base[obj][n];
+  
+  // Adiciona variação baseado na frequência
+  if(f >= 4) {
+    treinoExercicios = [...treinoExercicios, "Treino Aeróbico Complementar"];
+  }
+  if(f >= 5) {
+    treinoExercicios = [...treinoExercicios, "Mobilidade e Alongamento"];
+  }
+  
+  // Gerar mensagem personalizada
+  let mensagemMotivacional = "";
+  if(obj === "hipertrofia") mensagemMotivacional = "💪 Foco no crescimento muscular! Descanse 60-90 segundos entre séries.";
+  if(obj === "emagrecimento") mensagemMotivacional = "🔥 Mantenha o ritmo! Descanse apenas 30-45 segundos.";
+  if(obj === "condicionamento") mensagemMotivacional = "⚡ Trabalhe sua resistência! Mantenha constância.";
+  
+  // Exibe o resultado
+  document.getElementById("resultado").innerHTML = `
+    <div class="card">
+      <h3>🎯 Seu Treino Personalizado</h3>
+      <p><strong>Frequência:</strong> ${f}x por semana</p>
+      <p><strong>Objetivo:</strong> ${obj === "hipertrofia" ? "Hipertrofia" : obj === "emagrecimento" ? "Emagrecimento" : "Condicionamento"}</p>
+      <p><strong>Nível:</strong> ${n === "iniciante" ? "Iniciante" : n === "intermediario" ? "Intermediário" : "Avançado"}</p>
+      <p><strong>Exercícios recomendados:</strong></p>
+      <ul>
+        ${treinoExercicios.map(e => `<li>🏋️ ${e}</li>`).join("")}
+      </ul>
+      <p style="margin-top:15px; padding:10px; background:#e0f2fe; border-radius:6px; color:#0c4a6e">
+        💡 ${mensagemMotivacional}
+      </p>
+    </div>
+  `;
+  
+  // Salva o treino no histórico
+  treinos.push({
+    aluno: usuarioAtual,
+    exercicios: treinoExercicios.join(", "),
+    data: new Date().toLocaleDateString('pt-BR')
+  });
+  
+  localStorage.setItem("treinos", JSON.stringify(treinos));
+  atualizar();
+  toast("✨ Treino gerado com sucesso! Confira seu histórico.");
+}
+
+// ===== ATUALIZA DASHBOARD =====
+function atualizar() {
+  if(!usuarioAtual) return;
+  
+  const treinosAluno = treinos.filter(t => t.aluno === usuarioAtual);
+  
+  // Atualiza lista de treinos
+  const listaTreinos = document.getElementById("listaTreinos");
+  const semTreinos = document.getElementById("semTreinos");
+  
+  if(treinosAluno.length === 0) {
+    listaTreinos.innerHTML = "";
+    semTreinos.style.display = "block";
+  } else {
+    listaTreinos.innerHTML = treinosAluno.map(t => `
+      <tr>
+        <td>${t.exercicios}</td>
+        <td>${t.data}</td>
+      </tr>
+    `).join("");
+    semTreinos.style.display = "none";
+  }
+  
+  // Atualiza contador total
+  document.getElementById("totalTreinos").innerText = treinosAluno.length;
+}
+</script>
+
+</body>
+</html>
